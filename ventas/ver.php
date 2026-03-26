@@ -315,26 +315,41 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             </div>
 
             <div>
-              <label class="block text-xs font-medium text-gray-600 mb-1">CUIT / DNI</label>
-              <input type="text" name="cuit_factura" value="<?= esc($v['cuit'] ?? '') ?>"
-                placeholder="20-12345678-5"
+              <label class="block text-xs font-medium text-gray-600 mb-1">Tipo de documento</label>
+              <select name="tipo_documento" id="tipo_documento"
                 class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white">
+                <option value="80">CUIT</option>
+                <option value="86">CUIL</option>
+                <option value="96">DNI</option>
+              </select>
+            </div>
+
+            <div class="relative">
+              <label class="block text-xs font-medium text-gray-600 mb-1">Número de documento</label>
+              <div class="flex gap-2">
+                <input type="text" name="cuit_factura" id="cuit_factura"
+                  value="<?= esc($v['cuit'] ?? '') ?>"
+                  placeholder="20-12345678-5" autocomplete="off"
+                  oninput="buscarCliente(this.value)"
+                  class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white">
+              </div>
+              <div id="sugerencias-cliente" class="absolute z-10 w-full bg-white border border-gray-200 rounded-lg shadow-lg mt-1 hidden text-sm"></div>
             </div>
 
             <div>
               <label class="block text-xs font-medium text-gray-600 mb-1">Categoría IVA</label>
-              <select name="iva_categoria"
+              <select name="iva_categoria" id="iva_categoria"
                 class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white">
                 <option value="RI" <?= $es_ri ? 'selected' : '' ?>>Responsable Inscripto</option>
                 <option value="CF" <?= !$es_ri ? 'selected' : '' ?>>Consumidor Final</option>
-                <option value="MO">Monotributista</option>
+                <option value="RS">Monotributista</option>
                 <option value="EX">Exento</option>
               </select>
             </div>
 
             <div class="sm:col-span-2">
               <label class="block text-xs font-medium text-gray-600 mb-1">Razón social</label>
-              <input type="text" name="razon_social"
+              <input type="text" name="razon_social" id="razon_social"
                 value="<?= esc($v['empresa'] ?: $v['cliente_nombre'] ?? '') ?>"
                 class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white">
             </div>
@@ -377,9 +392,65 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         <script>
         const tarjetaCodes = <?= json_encode(array_values($medios_tarjeta)) ?>;
         function toggleTarjeta(val) {
-            const div = document.getElementById('datos-tarjeta');
-            div.classList.toggle('hidden', !tarjetaCodes.includes(val));
+            document.getElementById('datos-tarjeta').classList.toggle('hidden', !tarjetaCodes.includes(val));
         }
+
+        const ivaMap = { '80':'RI', '86':'RS', '96':'CF' };
+
+        let _buscarTimer;
+        function buscarCliente(q) {
+            clearTimeout(_buscarTimer);
+            const div = document.getElementById('sugerencias-cliente');
+            q = q.replace(/[^0-9]/g,'');
+            if (q.length < 7) { div.classList.add('hidden'); return; }
+            _buscarTimer = setTimeout(() => {
+                fetch('<?= BASE_URL ?>/tango/buscar_cliente.php?q=' + encodeURIComponent(q))
+                    .then(r => r.json())
+                    .then(data => {
+                        if (!data.length) { div.classList.add('hidden'); return; }
+                        div.innerHTML = data.map(c =>
+                            `<div class="px-3 py-2 hover:bg-blue-50 cursor-pointer border-b border-gray-100 last:border-0"
+                                onclick="seleccionarCliente(${JSON.stringify(c).replace(/"/g,'&quot;')})">
+                                <p class="font-medium text-gray-800">${c.razon_social}</p>
+                                <p class="text-xs text-gray-400">${c.numero_documento} · ${c.iva_categoria} · ${c.ciudad || ''}</p>
+                            </div>`
+                        ).join('');
+                        div.classList.remove('hidden');
+                    });
+            }, 300);
+        }
+
+        function seleccionarCliente(c) {
+            document.getElementById('cuit_factura').value  = c.numero_documento;
+            document.getElementById('razon_social').value  = c.razon_social;
+            const ivaSel = document.getElementById('iva_categoria');
+            if (c.iva_categoria) {
+                for (let opt of ivaSel.options) {
+                    if (opt.value === c.iva_categoria) { opt.selected = true; break; }
+                }
+            }
+            // Tipo de documento
+            const tipoSel = document.getElementById('tipo_documento');
+            if (c.tipo_documento) {
+                for (let opt of tipoSel.options) {
+                    if (opt.value === c.tipo_documento) { opt.selected = true; break; }
+                }
+            }
+            // Condición de venta
+            if (c.condicion_venta) {
+                const condSel = document.querySelector('[name="condicion_venta"]');
+                for (let opt of condSel.options) {
+                    if (opt.value == c.condicion_venta) { opt.selected = true; break; }
+                }
+            }
+            document.getElementById('sugerencias-cliente').classList.add('hidden');
+        }
+
+        document.addEventListener('click', e => {
+            if (!e.target.closest('#form-facturar')) {
+                document.getElementById('sugerencias-cliente')?.classList.add('hidden');
+            }
+        });
         </script>
       <?php endif; ?>
     </div>

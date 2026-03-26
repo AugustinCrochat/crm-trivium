@@ -105,6 +105,58 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['sync_precios'])) {
         'msg' => "Precios actualizados: {$actualizados}" . (count($errores) ? ' | ' . implode(', ', $errores) : '')];
 }
 
+// ── Sync clientes ──────────────────────────────────────────────
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['sync_clientes'])) {
+    verify_csrf();
+
+    $nuevos = 0; $actualizados = 0; $errores = [];
+    $page = 1;
+
+    do {
+        $res = tango_get('Customer', ['pageSize' => 500, 'pageNumber' => $page]);
+        if (!isset($res['Data'])) { $errores[] = 'Error: ' . json_encode($res); break; }
+
+        foreach ($res['Data'] as $c) {
+            $codigo = $c['Code'] ?? '';
+            if (!$codigo) continue;
+            $data = [
+                'razon_social'       => $c['BusinessName']    ?? '',
+                'nombre_fantasia'    => $c['TradeName']       ?? '',
+                'tipo_documento'     => $c['DocumentType']    ?? '',
+                'numero_documento'   => $c['DocumentNumber']  ?? '',
+                'iva_categoria'      => $c['IvaCategoryCode'] ?? '',
+                'direccion'          => $c['Address']         ?? '',
+                'ciudad'             => $c['City']            ?? '',
+                'provincia_code'     => $c['ProvinceCode']    ?? '',
+                'codigo_postal'      => $c['PostalCode']      ?? '',
+                'telefono'           => $c['PhoneNumbers']    ?? '',
+                'email'              => $c['Email']           ?? '',
+                'condicion_venta'    => $c['SaleConditionCode'] ?? null,
+                'lista_precios'      => $c['PriceListNumber']   ?? null,
+                'ultima_actualizacion' => $c['LastUpdateUtc']  ?? null,
+            ];
+            $existe = $pdo->prepare('SELECT id FROM tango_clientes WHERE codigo=?');
+            $existe->execute([$codigo]);
+            if ($existe->fetchColumn()) {
+                $set = implode(',', array_map(fn($k) => "{$k}=?", array_keys($data)));
+                $pdo->prepare("UPDATE tango_clientes SET {$set} WHERE codigo=?")
+                    ->execute([...array_values($data), $codigo]);
+                $actualizados++;
+            } else {
+                $cols = 'codigo,' . implode(',', array_keys($data));
+                $vals = implode(',', array_fill(0, count($data) + 1, '?'));
+                $pdo->prepare("INSERT INTO tango_clientes ({$cols}) VALUES ({$vals})")
+                    ->execute([$codigo, ...array_values($data)]);
+                $nuevos++;
+            }
+        }
+        $page++;
+    } while (!empty($res['Paging']['MoreData']));
+
+    $resultado = ['tipo' => 'clientes', 'ok' => empty($errores),
+        'msg' => "Nuevos: {$nuevos} | Actualizados: {$actualizados}" . (count($errores) ? ' | ' . implode(', ', $errores) : '')];
+}
+
 // ── Sync stock ─────────────────────────────────────────────────
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['sync_stock'])) {
     verify_csrf();
@@ -210,6 +262,20 @@ $sin_precio       = $pdo->query("SELECT COUNT(*) FROM productos WHERE precio = 0
           </div>
           <svg class="w-5 h-5 text-yellow-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/>
+          </svg>
+        </button>
+      </form>
+
+      <form method="POST">
+        <?= csrf_field() ?>
+        <button name="sync_clientes" value="1"
+          class="w-full flex items-center justify-between px-4 py-3 bg-purple-50 border border-purple-200 rounded-lg hover:bg-purple-100 transition-colors text-left">
+          <div>
+            <p class="text-sm font-medium text-purple-800">Sync Clientes</p>
+            <p class="text-xs text-purple-600">Importa clientes de Tango para validar documentos al facturar</p>
+          </div>
+          <svg class="w-5 h-5 text-purple-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0"/>
           </svg>
         </button>
       </form>

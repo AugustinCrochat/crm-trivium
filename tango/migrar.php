@@ -13,6 +13,27 @@ $alteraciones = [
     "ALTER TABLE ventas   ADD COLUMN IF NOT EXISTS factura_numero VARCHAR(50)  DEFAULT NULL AFTER tango_order_id",
     "ALTER TABLE ventas   ADD COLUMN IF NOT EXISTS factura_url    VARCHAR(255) DEFAULT NULL AFTER factura_numero",
     "ALTER TABLE ventas   ADD COLUMN IF NOT EXISTS factura_pdf    LONGBLOB     DEFAULT NULL AFTER factura_url",
+    "CREATE TABLE IF NOT EXISTS tango_clientes (
+        id INT AUTO_INCREMENT PRIMARY KEY,
+        codigo VARCHAR(20) NOT NULL,
+        razon_social VARCHAR(200),
+        nombre_fantasia VARCHAR(200),
+        tipo_documento VARCHAR(5),
+        numero_documento VARCHAR(30),
+        iva_categoria VARCHAR(10),
+        direccion VARCHAR(200),
+        ciudad VARCHAR(100),
+        provincia_code VARCHAR(5),
+        codigo_postal VARCHAR(10),
+        telefono VARCHAR(50),
+        email VARCHAR(100),
+        condicion_venta INT DEFAULT NULL,
+        lista_precios INT DEFAULT NULL,
+        ultima_actualizacion DATETIME,
+        UNIQUE KEY uk_codigo (codigo),
+        KEY idx_doc (tipo_documento, numero_documento(20)),
+        KEY idx_razon (razon_social(50))
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4",
 ];
 
 foreach ($alteraciones as $sql) {
