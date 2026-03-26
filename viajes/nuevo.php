@@ -2,19 +2,21 @@
 require_once '../config/db.php';
 $title  = 'Nuevo viaje';
 $errors = [];
+$transportes = $pdo->query("SELECT id, nombre FROM transportes WHERE activo=1 ORDER BY nombre")->fetchAll();
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     verify_csrf();
-    $fecha       = $_POST['fecha']       ?? date('Y-m-d');
-    $descripcion = trim($_POST['descripcion'] ?? '');
-    $estado      = $_POST['estado']      ?? 'planificado';
-    $notas       = trim($_POST['notas']  ?? '');
+    $fecha         = $_POST['fecha']         ?? date('Y-m-d');
+    $descripcion   = trim($_POST['descripcion'] ?? '');
+    $transporte_id = (int)($_POST['transporte_id'] ?? 0) ?: null;
+    $estado        = $_POST['estado']        ?? 'planificado';
+    $notas         = trim($_POST['notas']    ?? '');
 
     if (!$fecha) $errors[] = 'La fecha es obligatoria.';
 
     if (!$errors) {
-        $pdo->prepare("INSERT INTO viajes (fecha,descripcion,estado,notas) VALUES (?,?,?,?)")
-            ->execute([$fecha, $descripcion, $estado, $notas]);
+        $pdo->prepare("INSERT INTO viajes (fecha,descripcion,transporte_id,estado,notas) VALUES (?,?,?,?,?)")
+            ->execute([$fecha, $descripcion, $transporte_id, $estado, $notas]);
         $vid = $pdo->lastInsertId();
         flash('Viaje creado.');
         redirect('/viajes/ver.php?id=' . $vid);
@@ -48,6 +50,18 @@ require_once '../includes/header.php';
       <input type="text" name="descripcion" placeholder="ej: Córdoba y Rosario"
         class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
     </div>
+    <?php if ($transportes): ?>
+    <div>
+      <label class="block text-sm font-medium text-gray-700 mb-1">Transporte</label>
+      <select name="transporte_id"
+        class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+        <option value="">— Sin asignar —</option>
+        <?php foreach ($transportes as $t): ?>
+        <option value="<?= $t['id'] ?>"><?= esc($t['nombre']) ?></option>
+        <?php endforeach; ?>
+      </select>
+    </div>
+    <?php endif; ?>
     <div>
       <label class="block text-sm font-medium text-gray-700 mb-1">Estado</label>
       <select name="estado"

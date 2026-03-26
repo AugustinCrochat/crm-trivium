@@ -9,6 +9,7 @@ $cambios = [];
 
 $alteraciones = [
     "ALTER TABLE clientes ADD COLUMN IF NOT EXISTS cuit VARCHAR(20) DEFAULT NULL AFTER email",
+    "ALTER TABLE viajes   ADD COLUMN IF NOT EXISTS transporte_id INT DEFAULT NULL AFTER descripcion",
     "ALTER TABLE ventas   ADD COLUMN IF NOT EXISTS tango_order_id VARCHAR(100) DEFAULT NULL AFTER sincronizado_tango",
     "ALTER TABLE ventas   ADD COLUMN IF NOT EXISTS factura_numero VARCHAR(50)  DEFAULT NULL AFTER tango_order_id",
     "ALTER TABLE ventas   ADD COLUMN IF NOT EXISTS factura_url    VARCHAR(255) DEFAULT NULL AFTER factura_numero",
