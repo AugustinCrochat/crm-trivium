@@ -17,7 +17,7 @@ $stmt = $pdo->prepare("
 ");
 $stmt->execute([$id]);
 $e = $stmt->fetch();
-if (!$e) { flash('Envío no encontrado.','error'); redirect('/envios/'); }
+if (!$e) { flash('Envío no encontrado.','error'); redirect('/viajes/'); }
 
 $title = 'Envío #' . $id;
 require_once '../includes/header.php';
@@ -44,7 +44,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 ?>
 
 <div class="flex items-center justify-between mb-4 gap-3">
-  <a href="<?= BASE_URL ?>/envios/" class="inline-flex items-center gap-1 text-sm text-gray-500 hover:text-gray-700">
+  <a href="<?= BASE_URL ?>/viajes/" class="inline-flex items-center gap-1 text-sm text-gray-500 hover:text-gray-700">
     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg>
     Volver
   </a>
