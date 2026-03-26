@@ -15,7 +15,24 @@ if (isset($_GET['test'])) {
 // ── Debug: ver estructura real de respuesta ─────────────────────
 if (isset($_GET['debug'])) {
     $r = tango_get('Product', ['pageSize' => 2, 'pageNumber' => 1, 'onlyEnabled' => 'true']);
-    unset($r['Data']); // no mostrar los productos, solo la estructura
+    unset($r['Data']);
+    header('Content-Type: application/json');
+    echo json_encode($r, JSON_PRETTY_PRINT);
+    exit;
+}
+
+// ── Debug: buscar cliente por CUIT/DNI ──────────────────────────
+if (isset($_GET['debug_customer'])) {
+    $taxId = preg_replace('/[^0-9]/', '', $_GET['debug_customer']);
+    $r = tango_get('Customer', ['taxId' => $taxId]);
+    header('Content-Type: application/json');
+    echo json_encode($r, JSON_PRETTY_PRINT);
+    exit;
+}
+
+// ── Debug: ver razones de ajuste de stock ───────────────────────
+if (isset($_GET['debug_stock_reasons'])) {
+    $r = tango_get('StockAdjustmentReason');
     header('Content-Type: application/json');
     echo json_encode($r, JSON_PRETTY_PRINT);
     exit;
