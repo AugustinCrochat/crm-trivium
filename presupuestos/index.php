@@ -8,7 +8,6 @@ $q      = trim($_GET['q'] ?? '');
 
 $where  = [];
 $params = [];
-
 if ($estado !== 'todos') {
     $where[]  = 'p.estado = ?';
     $params[] = $estado;
@@ -29,8 +28,45 @@ $stmt = $pdo->prepare($sql);
 $stmt->execute($params);
 $presupuestos = $stmt->fetchAll();
 
-$tabs = ['todos','borrador','enviado','aprobado','rechazado'];
+// Enviados hace +7 días sin resolver (solo si no estamos filtrando)
+$pendientes_alerta = [];
+if ($estado === 'todos' || $estado === 'enviado') {
+    $pa = $pdo->query("
+        SELECT p.id, p.fecha, p.total,
+               c.nombre AS cliente_nombre, c.empresa AS cliente_empresa,
+               DATEDIFF(NOW(), p.fecha) AS dias
+        FROM presupuestos p
+        LEFT JOIN clientes c ON c.id = p.cliente_id
+        WHERE p.estado = 'enviado' AND p.fecha <= DATE_SUB(NOW(), INTERVAL 7 DAY)
+        ORDER BY p.fecha ASC
+    ")->fetchAll();
+    $pendientes_alerta = $pa;
+}
+
+$tabs   = ['todos','borrador','enviado','aprobado','rechazado'];
+$labels = ['todos'=>'Todos','borrador'=>'Borrador','enviado'=>'Enviado','aprobado'=>'Aprobado','rechazado'=>'Rechazado'];
 ?>
+
+<!-- Alerta enviados sin respuesta -->
+<?php if ($pendientes_alerta): ?>
+<div class="mb-4 bg-amber-50 border border-amber-200 rounded-xl p-4">
+  <div class="flex items-center gap-2 mb-2">
+    <svg class="w-4 h-4 text-amber-600 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
+    <p class="text-sm font-semibold text-amber-800">Enviados sin respuesta hace más de 7 días</p>
+  </div>
+  <div class="space-y-1">
+    <?php foreach ($pendientes_alerta as $pa): ?>
+    <div class="flex items-center justify-between text-sm">
+      <a href="<?= BASE_URL ?>/presupuestos/ver.php?id=<?= $pa['id'] ?>"
+        class="text-amber-700 hover:underline font-medium">
+        #<?= $pa['id'] ?> — <?= esc($pa['cliente_empresa'] ?: $pa['cliente_nombre'] ?: 'Sin cliente') ?>
+      </a>
+      <span class="text-amber-600 text-xs"><?= $pa['dias'] ?> días · <?= money($pa['total']) ?></span>
+    </div>
+    <?php endforeach; ?>
+  </div>
+</div>
+<?php endif; ?>
 
 <div class="flex items-center justify-between mb-4 gap-3">
   <form method="GET" class="flex gap-2 flex-1 max-w-xs">
@@ -46,15 +82,10 @@ $tabs = ['todos','borrador','enviado','aprobado','rechazado'];
 
 <!-- Tabs -->
 <div class="flex gap-1 mb-4 overflow-x-auto pb-1">
-  <?php
-  $labels = ['todos'=>'Todos','borrador'=>'Borrador','enviado'=>'Enviado','aprobado'=>'Aprobado','rechazado'=>'Rechazado'];
-  foreach ($labels as $key => $lbl):
-  ?>
+  <?php foreach ($labels as $key => $lbl): ?>
   <a href="?estado=<?= $key ?><?= $q ? '&q=' . urlencode($q) : '' ?>"
     class="flex-shrink-0 px-3 py-1.5 rounded-full text-xs font-medium transition-colors
-    <?= $estado === $key
-        ? 'bg-blue-600 text-white'
-        : 'bg-white border border-gray-200 text-gray-600 hover:bg-gray-50' ?>">
+    <?= $estado === $key ? 'bg-blue-600 text-white' : 'bg-white border border-gray-200 text-gray-600 hover:bg-gray-50' ?>">
     <?= $lbl ?>
   </a>
   <?php endforeach; ?>
@@ -71,7 +102,7 @@ $tabs = ['todos','borrador','enviado','aprobado','rechazado'];
     <div class="min-w-0 flex-1">
       <div class="flex items-center gap-2">
         <a href="<?= BASE_URL ?>/presupuestos/ver.php?id=<?= $p['id'] ?>"
-          class="text-sm font-medium text-blue-600 hover:underline">#<?= $p['id'] ?></a>
+          class="text-sm font-medium text-blue-600 hover:underline">#<?= str_pad($p['id'],5,'0',STR_PAD_LEFT) ?></a>
         <?= badge($p['estado']) ?>
       </div>
       <p class="text-sm text-gray-700 truncate mt-0.5">
@@ -83,7 +114,7 @@ $tabs = ['todos','borrador','enviado','aprobado','rechazado'];
       <p class="text-sm font-bold text-gray-800"><?= money($p['total']) ?></p>
       <div class="flex gap-2 mt-1 justify-end">
         <a href="<?= BASE_URL ?>/presupuestos/ver.php?id=<?= $p['id'] ?>" class="text-xs text-gray-500 hover:underline">Ver</a>
-        <a href="<?= BASE_URL ?>/presupuestos/pdf.php?id=<?= $p['id'] ?>" class="text-xs text-blue-600 hover:underline">PDF</a>
+        <a href="<?= BASE_URL ?>/presupuestos/pdf.php?id=<?= $p['id'] ?>" target="_blank" class="text-xs text-gray-500 hover:underline">PDF</a>
       </div>
     </div>
   </div>

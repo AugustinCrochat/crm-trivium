@@ -20,7 +20,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $cliente_id   = (int)($_POST['cliente_id'] ?? 0) ?: null;
     $fecha        = $_POST['fecha']        ?? date('Y-m-d');
     $validez_dias = (int)($_POST['validez_dias'] ?? 15);
-    $estado       = $_POST['estado']       ?? 'borrador';
+    $estado       = $_POST['estado']       ?? 'enviado';
     $notas        = trim($_POST['notas']   ?? '');
     $items        = array_filter($_POST['items'] ?? [], fn($it) => trim($it['descripcion'] ?? '') !== '');
 
@@ -29,13 +29,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if (!$errors) {
         $total = 0;
         foreach ($items as $it) {
-            $total += (float)($it['cantidad'] ?? 1) * (float)($it['precio_unitario'] ?? 0);
+            $total += (float)($it['cantidad'] ?? 1) * (float)($it['precio_unitario'] ?? 0) * (1 + (float)($it['iva'] ?? 0) / 100);
         }
         $pdo->prepare("UPDATE presupuestos SET cliente_id=?,fecha=?,validez_dias=?,estado=?,notas=?,total=? WHERE id=?")
             ->execute([$cliente_id, $fecha, $validez_dias, $estado, $notas, $total, $id]);
 
         $pdo->prepare("DELETE FROM presupuesto_items WHERE presupuesto_id=?")->execute([$id]);
-        $stmtItem = $pdo->prepare("INSERT INTO presupuesto_items (presupuesto_id,producto_id,descripcion,cantidad,precio_unitario) VALUES (?,?,?,?,?)");
+        $stmtItem = $pdo->prepare("INSERT INTO presupuesto_items (presupuesto_id,producto_id,descripcion,cantidad,precio_unitario,iva) VALUES (?,?,?,?,?,?)");
         foreach ($items as $it) {
             $stmtItem->execute([
                 $id,
@@ -43,6 +43,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 trim($it['descripcion']),
                 (float)($it['cantidad'] ?? 1),
                 (float)($it['precio_unitario'] ?? 0),
+                (float)($it['iva'] ?? 0),
             ]);
         }
 
@@ -73,8 +74,12 @@ require_once '../includes/header.php';
       <h2 class="text-sm font-semibold text-gray-700 mb-4">Datos generales</h2>
       <div class="grid sm:grid-cols-2 gap-4">
         <div class="sm:col-span-2">
-          <label class="block text-sm font-medium text-gray-700 mb-1">Cliente</label>
-          <select name="cliente_id"
+          <div class="flex items-center justify-between mb-1">
+            <label class="text-sm font-medium text-gray-700">Cliente</label>
+            <button type="button" onclick="document.getElementById('modal-cliente').showModal()"
+              class="text-xs text-blue-600 hover:underline">+ Nuevo cliente</button>
+          </div>
+          <select name="cliente_id" id="sel-cliente"
             class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
             <option value="">— Sin asignar —</option>
             <?php foreach ($clientes as $cl): ?>
@@ -98,8 +103,8 @@ require_once '../includes/header.php';
           <label class="block text-sm font-medium text-gray-700 mb-1">Estado</label>
           <select name="estado"
             class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
-            <?php foreach (['borrador','enviado','aprobado','rechazado'] as $est): ?>
-            <option value="<?= $est ?>" <?= $pres['estado'] === $est ? 'selected' : '' ?>><?= ucfirst($est) ?></option>
+            <?php foreach (['enviado'=>'Enviado','borrador'=>'Borrador','aprobado'=>'Aprobado','rechazado'=>'Rechazado'] as $est => $lbl): ?>
+            <option value="<?= $est ?>" <?= $pres['estado'] === $est ? 'selected' : '' ?>><?= $lbl ?></option>
             <?php endforeach; ?>
           </select>
         </div>
@@ -114,115 +119,140 @@ require_once '../includes/header.php';
     <div class="bg-white rounded-xl border border-gray-200 shadow-sm p-5">
       <h2 class="text-sm font-semibold text-gray-700 mb-3">Ítems</h2>
       <div class="mb-4 relative">
-        <input type="search" id="buscar-producto" placeholder="Buscar producto para agregar…"
-          autocomplete="off"
+        <input type="search" id="buscar-producto" placeholder="Buscar producto para agregar…" autocomplete="off"
           class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
         <div id="resultados-busqueda"
-          class="absolute left-0 right-0 top-full mt-1 bg-white border border-gray-200 rounded-lg shadow-lg z-10 hidden max-h-52 overflow-y-auto">
-        </div>
+          class="absolute left-0 right-0 top-full mt-1 bg-white border border-gray-200 rounded-lg shadow-lg z-10 hidden max-h-52 overflow-y-auto"></div>
       </div>
       <div id="items-container" class="space-y-2 mb-4">
         <?php foreach ($items_actuales as $i => $it): ?>
-        <div class="item-row grid grid-cols-12 gap-2 items-start bg-gray-50 rounded-lg p-3">
-          <div class="col-span-12 sm:col-span-5">
+        <div class="item-row bg-gray-50 rounded-lg p-3 space-y-2">
+          <div class="flex gap-2 items-start">
             <input type="text" name="items[<?= $i ?>][descripcion]" value="<?= esc($it['descripcion']) ?>" required
-              class="w-full border border-gray-300 rounded-lg px-2.5 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+              class="flex-1 border border-gray-300 rounded-lg px-2.5 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
             <input type="hidden" name="items[<?= $i ?>][producto_id]" value="<?= esc($it['producto_id']) ?>">
-          </div>
-          <div class="col-span-4 sm:col-span-2">
-            <input type="number" name="items[<?= $i ?>][cantidad]" value="<?= esc($it['cantidad']) ?>"
-              min="0.01" step="0.01"
-              class="item-cant w-full border border-gray-300 rounded-lg px-2.5 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-              oninput="recalcTotal()">
-          </div>
-          <div class="col-span-5 sm:col-span-3">
-            <input type="number" name="items[<?= $i ?>][precio_unitario]" value="<?= esc($it['precio_unitario']) ?>"
-              min="0" step="0.01"
-              class="item-price w-full border border-gray-300 rounded-lg px-2.5 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-              oninput="recalcTotal()">
-          </div>
-          <div class="col-span-9 sm:col-span-1 text-right text-sm font-semibold text-gray-700 py-1.5">
-            <span class="item-subtotal"></span>
-          </div>
-          <div class="col-span-3 sm:col-span-1 text-right py-1">
             <button type="button" onclick="this.closest('.item-row').remove(); recalcTotal();"
-              class="text-gray-400 hover:text-red-500 p-1">
-              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
-              </svg>
+              class="flex-shrink-0 text-gray-400 hover:text-red-500 p-1">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
             </button>
+          </div>
+          <div class="flex gap-2 items-center flex-wrap">
+            <input type="number" name="items[<?= $i ?>][cantidad]" value="<?= esc($it['cantidad']) ?>"
+              min="0.01" step="0.01" placeholder="Cant."
+              class="item-cant w-20 border border-gray-300 rounded-lg px-2.5 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+              oninput="recalcTotal()">
+            <span class="text-gray-400 text-xs">×</span>
+            <input type="number" name="items[<?= $i ?>][precio_unitario]" value="<?= esc($it['precio_unitario']) ?>"
+              min="0" step="0.01" placeholder="Precio s/IVA"
+              class="item-price flex-1 min-w-0 border border-gray-300 rounded-lg px-2.5 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+              oninput="recalcTotal()">
+            <?php $iva_val = (float)($it['iva'] ?? 0); ?>
+            <select name="items[<?= $i ?>][iva]"
+              class="item-iva border border-gray-300 rounded-lg px-2 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white"
+              onchange="recalcTotal()">
+              <option value="0"    <?= $iva_val == 0    ? 'selected' : '' ?>>0% IVA</option>
+              <option value="10.5" <?= $iva_val == 10.5 ? 'selected' : '' ?>>10.5%</option>
+              <option value="21"   <?= $iva_val == 21   ? 'selected' : '' ?>>21%</option>
+              <option value="27"   <?= $iva_val == 27   ? 'selected' : '' ?>>27%</option>
+            </select>
+            <span class="item-subtotal text-sm font-semibold text-gray-700 text-right w-24"></span>
           </div>
         </div>
         <?php endforeach; ?>
       </div>
-      <button type="button" onclick="addItemManual()"
-        class="text-sm text-blue-600 hover:underline">+ Agregar ítem manual</button>
-      <div class="mt-4 pt-4 border-t border-gray-100 flex justify-end">
-        <div class="text-right">
-          <p class="text-xs text-gray-500 mb-0.5">Total</p>
-          <p id="total-display" class="text-xl font-bold text-gray-900">$ 0,00</p>
-        </div>
+      <button type="button" onclick="addItemManual()" class="text-sm text-blue-600 hover:underline">+ Agregar ítem manual</button>
+      <div class="mt-4 pt-4 border-t border-gray-100 space-y-1 text-right">
+        <p class="text-xs text-gray-400">Subtotal s/IVA: <span id="subtotal-display" class="font-medium text-gray-600">$ 0,00</span></p>
+        <p class="text-xs text-gray-400">IVA: <span id="iva-display" class="font-medium text-gray-600">$ 0,00</span></p>
+        <p class="text-sm font-semibold text-gray-700">Total c/IVA: <span id="total-display" class="text-xl font-bold text-gray-900">$ 0,00</span></p>
       </div>
     </div>
 
     <div class="flex justify-end gap-3">
       <a href="<?= BASE_URL ?>/presupuestos/ver.php?id=<?= $id ?>" class="text-sm text-gray-500 px-4 py-2">Cancelar</a>
-      <button type="submit" class="bg-blue-600 text-white text-sm font-medium px-6 py-2.5 rounded-lg hover:bg-blue-700">
-        Guardar cambios
-      </button>
+      <button type="submit" class="bg-blue-600 text-white text-sm font-medium px-6 py-2.5 rounded-lg hover:bg-blue-700">Guardar cambios</button>
     </div>
   </form>
 </div>
 
+<!-- Modal nuevo cliente -->
+<dialog id="modal-cliente" class="rounded-xl shadow-2xl p-6 w-full max-w-sm backdrop:bg-black/40">
+  <h3 class="text-base font-semibold text-gray-800 mb-4">Nuevo cliente</h3>
+  <div class="space-y-3">
+    <input type="text" id="nc-nombre" placeholder="Nombre *" required
+      class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+    <input type="text" id="nc-empresa" placeholder="Empresa"
+      class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+    <input type="tel" id="nc-telefono" placeholder="Teléfono / WhatsApp"
+      class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+    <p id="nc-error" class="text-xs text-red-600 hidden"></p>
+  </div>
+  <div class="flex justify-end gap-2 mt-5">
+    <button type="button" onclick="document.getElementById('modal-cliente').close()"
+      class="text-sm text-gray-500 px-4 py-2 hover:text-gray-700">Cancelar</button>
+    <button type="button" onclick="crearCliente()"
+      class="bg-blue-600 text-white text-sm font-medium px-4 py-2 rounded-lg hover:bg-blue-700">Crear</button>
+  </div>
+</dialog>
+
 <script>
-const BASE_URL = '<?= BASE_URL ?>';
+const BASE_URL   = '<?= BASE_URL ?>';
+const CSRF_TOKEN = '<?= $_SESSION['csrf_token'] ?? '' ?>';
 let itemIdx = <?= count($items_actuales) ?>;
 
 function formatMoney(n) {
   return '$ ' + parseFloat(n || 0).toLocaleString('es-AR', {minimumFractionDigits:2, maximumFractionDigits:2});
 }
 function recalcTotal() {
-  let total = 0;
+  let subtotal = 0, ivaTotal = 0;
   document.querySelectorAll('.item-row').forEach(row => {
     const cant  = parseFloat(row.querySelector('.item-cant').value)  || 0;
     const price = parseFloat(row.querySelector('.item-price').value) || 0;
-    total += cant * price;
-    row.querySelector('.item-subtotal').textContent = formatMoney(cant * price);
+    const iva   = parseFloat(row.querySelector('.item-iva').value)   || 0;
+    const base  = cant * price;
+    const ivaMonto = base * iva / 100;
+    subtotal += base;
+    ivaTotal += ivaMonto;
+    row.querySelector('.item-subtotal').textContent = formatMoney(base + ivaMonto);
   });
-  document.getElementById('total-display').textContent = formatMoney(total);
+  document.getElementById('subtotal-display').textContent = formatMoney(subtotal);
+  document.getElementById('iva-display').textContent      = formatMoney(ivaTotal);
+  document.getElementById('total-display').textContent    = formatMoney(subtotal + ivaTotal);
 }
-function addItem(descripcion, precio, productoId) {
+function addItem(descripcion, precio, productoId, iva) {
+  iva = iva !== undefined ? iva : 21;
   const idx = itemIdx++;
   const div = document.createElement('div');
-  div.className = 'item-row grid grid-cols-12 gap-2 items-start bg-gray-50 rounded-lg p-3';
+  div.className = 'item-row bg-gray-50 rounded-lg p-3 space-y-2';
   div.innerHTML = `
-    <div class="col-span-12 sm:col-span-5">
+    <div class="flex gap-2 items-start">
       <input type="text" name="items[${idx}][descripcion]" value="${descripcion.replace(/"/g,'&quot;')}" required
-        class="w-full border border-gray-300 rounded-lg px-2.5 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+        class="flex-1 border border-gray-300 rounded-lg px-2.5 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
       <input type="hidden" name="items[${idx}][producto_id]" value="${productoId||''}">
-    </div>
-    <div class="col-span-4 sm:col-span-2">
-      <input type="number" name="items[${idx}][cantidad]" value="1" min="0.01" step="0.01"
-        class="item-cant w-full border border-gray-300 rounded-lg px-2.5 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" oninput="recalcTotal()">
-    </div>
-    <div class="col-span-5 sm:col-span-3">
-      <input type="number" name="items[${idx}][precio_unitario]" value="${precio||0}" min="0" step="0.01"
-        class="item-price w-full border border-gray-300 rounded-lg px-2.5 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" oninput="recalcTotal()">
-    </div>
-    <div class="col-span-9 sm:col-span-1 text-right text-sm font-semibold text-gray-700 py-1.5">
-      <span class="item-subtotal">${formatMoney(precio)}</span>
-    </div>
-    <div class="col-span-3 sm:col-span-1 text-right py-1">
       <button type="button" onclick="this.closest('.item-row').remove();recalcTotal();"
-        class="text-gray-400 hover:text-red-500 p-1">
+        class="flex-shrink-0 text-gray-400 hover:text-red-500 p-1">
         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
       </button>
     </div>
-  `;
+    <div class="flex gap-2 items-center flex-wrap">
+      <input type="number" name="items[${idx}][cantidad]" value="1" min="0.01" step="0.01" placeholder="Cant."
+        class="item-cant w-20 border border-gray-300 rounded-lg px-2.5 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" oninput="recalcTotal()">
+      <span class="text-gray-400 text-xs">×</span>
+      <input type="number" name="items[${idx}][precio_unitario]" value="${precio||0}" min="0" step="0.01" placeholder="Precio s/IVA"
+        class="item-price flex-1 min-w-0 border border-gray-300 rounded-lg px-2.5 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" oninput="recalcTotal()">
+      <select name="items[${idx}][iva]"
+        class="item-iva border border-gray-300 rounded-lg px-2 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white" onchange="recalcTotal()">
+        <option value="0"   ${iva==0?'selected':''}>0% IVA</option>
+        <option value="10.5" ${iva==10.5?'selected':''}>10.5%</option>
+        <option value="21"  ${iva==21?'selected':''}>21%</option>
+        <option value="27"  ${iva==27?'selected':''}>27%</option>
+      </select>
+      <span class="item-subtotal text-sm font-semibold text-gray-700 text-right w-24">${formatMoney(precio)}</span>
+    </div>`;
   document.getElementById('items-container').appendChild(div);
   recalcTotal();
 }
-function addItemManual() { addItem('', 0, ''); }
+function addItemManual() { addItem('', 0, '', 21); }
 
 let searchTimer;
 const inputBuscar = document.getElementById('buscar-producto');
@@ -245,13 +275,39 @@ inputBuscar.addEventListener('input', function() {
   }, 250);
 });
 function selectProducto(id, nombre, precio) {
-  addItem(nombre, precio, id);
+  addItem(nombre, precio, id, 21);
   inputBuscar.value = '';
   resultados.classList.add('hidden');
 }
 document.addEventListener('click', e => {
   if (!resultados.contains(e.target) && e.target !== inputBuscar) resultados.classList.add('hidden');
 });
+
+async function crearCliente() {
+  const nombre = document.getElementById('nc-nombre').value.trim();
+  const errEl  = document.getElementById('nc-error');
+  errEl.classList.add('hidden');
+  if (!nombre) { errEl.textContent = 'El nombre es obligatorio.'; errEl.classList.remove('hidden'); return; }
+  const empresa  = document.getElementById('nc-empresa').value.trim();
+  const telefono = document.getElementById('nc-telefono').value.trim();
+  const res = await fetch(`${BASE_URL}/clientes/rapido.php`, {
+    method: 'POST',
+    headers: {'Content-Type': 'application/x-www-form-urlencoded'},
+    body: new URLSearchParams({nombre, empresa, telefono, csrf_token: CSRF_TOKEN})
+  });
+  const d = await res.json();
+  if (d.ok) {
+    const sel = document.getElementById('sel-cliente');
+    sel.add(new Option(nombre + (empresa ? ' — ' + empresa : ''), d.id, true, true));
+    sel.value = d.id;
+    document.getElementById('modal-cliente').close();
+    ['nc-nombre','nc-empresa','nc-telefono'].forEach(id => document.getElementById(id).value = '');
+  } else {
+    errEl.textContent = d.error || 'Error al crear el cliente.';
+    errEl.classList.remove('hidden');
+  }
+}
+
 recalcTotal();
 </script>
 
