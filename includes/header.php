@@ -3,12 +3,14 @@
 $_scriptPath = str_replace('\\', '/', $_SERVER['SCRIPT_FILENAME']);
 $_activeModule = 'dashboard';
 foreach (['clientes','catalogo','presupuestos','ventas','transportes','logistica','importaciones','tango'] as $_m) {
-    $match = match($_m) {
-        'logistica'     => strpos($_scriptPath, '/viajes/') !== false || strpos($_scriptPath, '/envios/') !== false,
-        'importaciones' => strpos($_scriptPath, '/importaciones/') !== false || strpos($_scriptPath, '/forwarders/') !== false,
-        default         => strpos($_scriptPath, "/{$_m}/") !== false,
-    };
-    if ($match) { $_activeModule = $_m; break; }
+    if ($_m === 'logistica') {
+        $_found = strpos($_scriptPath, '/viajes/') !== false || strpos($_scriptPath, '/envios/') !== false;
+    } elseif ($_m === 'importaciones') {
+        $_found = strpos($_scriptPath, '/importaciones/') !== false || strpos($_scriptPath, '/forwarders/') !== false;
+    } else {
+        $_found = strpos($_scriptPath, "/{$_m}/") !== false;
+    }
+    if ($_found) { $_activeModule = $_m; break; }
 }
 
 function _navLink(string $module, string $label, string $svgPath, string $active, string $url = ''): void
