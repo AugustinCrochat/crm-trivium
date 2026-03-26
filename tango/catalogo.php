@@ -201,7 +201,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['sync_stock'])) {
         foreach ($res['Data'] as $s) {
             $sku = $s['SKUCode'] ?? '';
             if (!$sku) continue;
-            $stockPorSku[$sku] = ($stockPorSku[$sku] ?? 0) + (float)($s['Balance'] ?? 0);
+            $stockPorSku[$sku] = ($stockPorSku[$sku] ?? 0) + (float)($s['Quantity'] ?? 0);
         }
 
         foreach ($stockPorSku as $sku => $stock) {

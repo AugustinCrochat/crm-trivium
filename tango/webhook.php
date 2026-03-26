@@ -36,7 +36,7 @@ switch ($event) {
         $items = $data['Data'] ?? [$data];
         foreach ($items as $s) {
             $sku     = $s['SKUCode'] ?? '';
-            $balance = isset($s['Balance']) ? (float)$s['Balance'] : null;
+            $balance = isset($s['Quantity']) ? (float)$s['Quantity'] : (isset($s['Balance']) ? (float)$s['Balance'] : null);
             if (!$sku || $balance === null) continue;
             $pdo->prepare("UPDATE productos SET stock=? WHERE codigo_tango=?")
                 ->execute([(int)$balance, $sku]);
