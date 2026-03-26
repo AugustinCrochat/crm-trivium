@@ -2,11 +2,13 @@
 // Detectar módulo activo por ruta del script
 $_scriptPath = str_replace('\\', '/', $_SERVER['SCRIPT_FILENAME']);
 $_activeModule = 'dashboard';
-foreach (['clientes','catalogo','presupuestos','ventas','transportes','logistica','importaciones','forwarders','tango'] as $_m) {
-    if ($_m === 'logistica' ? (strpos($_scriptPath, '/viajes/') !== false || strpos($_scriptPath, '/envios/') !== false) : strpos($_scriptPath, "/{$_m}/") !== false) {
-        $_activeModule = $_m;
-        break;
-    }
+foreach (['clientes','catalogo','presupuestos','ventas','transportes','logistica','importaciones','tango'] as $_m) {
+    $match = match($_m) {
+        'logistica'     => strpos($_scriptPath, '/viajes/') !== false || strpos($_scriptPath, '/envios/') !== false,
+        'importaciones' => strpos($_scriptPath, '/importaciones/') !== false || strpos($_scriptPath, '/forwarders/') !== false,
+        default         => strpos($_scriptPath, "/{$_m}/") !== false,
+    };
+    if ($match) { $_activeModule = $_m; break; }
 }
 
 function _navLink(string $module, string $label, string $svgPath, string $active, string $url = ''): void
@@ -101,14 +103,8 @@ function _navSection(string $label): void
         '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17a2 2 0 11-4 0 2 2 0 014 0zM19 17a2 2 0 11-4 0 2 2 0 014 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16V6a1 1 0 00-1-1H4a1 1 0 00-1 1v10a1 1 0 001 1h1m8-1a1 1 0 01-1 1H9m4-1V8a1 1 0 011-1h2.586a1 1 0 01.707.293l3.414 3.414a1 1 0 01.293.707V16a1 1 0 01-1 1h-1"/>',
       $_activeModule); ?>
 
-      <?php _navSection('Importaciones'); ?>
-
       <?php _navLink('importaciones', 'Importaciones',
         '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4"/>',
-      $_activeModule); ?>
-
-      <?php _navLink('forwarders', 'Forwarders',
-        '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/>',
       $_activeModule); ?>
 
       <?php _navSection('Integración'); ?>
