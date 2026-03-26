@@ -25,12 +25,16 @@ if ($presupuesto_id_default) {
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     verify_csrf();
-    $cliente_id     = (int)($_POST['cliente_id']     ?? 0) ?: null;
-    $presupuesto_id = (int)($_POST['presupuesto_id'] ?? 0) ?: null;
-    $fecha          = $_POST['fecha']  ?? date('Y-m-d');
-    $estado         = $_POST['estado'] ?? 'pendiente';
-    $notas          = trim($_POST['notas'] ?? '');
-    $items          = array_filter($_POST['items'] ?? [], fn($it) => trim($it['descripcion'] ?? '') !== '');
+    $cliente_id        = (int)($_POST['cliente_id']     ?? 0) ?: null;
+    $presupuesto_id    = (int)($_POST['presupuesto_id'] ?? 0) ?: null;
+    $fecha             = $_POST['fecha']             ?? date('Y-m-d');
+    $estado            = $_POST['estado']            ?? 'pendiente';
+    $vendedor          = trim($_POST['vendedor']      ?? '');
+    $metodo_pago       = trim($_POST['metodo_pago']   ?? '');
+    $cobrado           = isset($_POST['cobrado']) ? 1 : 0;
+    $tipo_facturacion  = $_POST['tipo_facturacion']  === 'facturada' ? 'facturada' : 'manual';
+    $notas             = trim($_POST['notas']         ?? '');
+    $items             = array_filter($_POST['items'] ?? [], fn($it) => trim($it['descripcion'] ?? '') !== '');
 
     if (empty($items)) $errors[] = 'Agregá al menos un ítem.';
 
@@ -39,8 +43,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         foreach ($items as $it) {
             $total += (float)($it['cantidad'] ?? 1) * (float)($it['precio_unitario'] ?? 0);
         }
-        $pdo->prepare("INSERT INTO ventas (cliente_id,presupuesto_id,fecha,estado,total,notas) VALUES (?,?,?,?,?,?)")
-            ->execute([$cliente_id, $presupuesto_id, $fecha, $estado, $total, $notas]);
+        $pdo->prepare("INSERT INTO ventas (cliente_id,presupuesto_id,fecha,estado,vendedor,metodo_pago,cobrado,tipo_facturacion,total,notas) VALUES (?,?,?,?,?,?,?,?,?,?)")
+            ->execute([$cliente_id, $presupuesto_id, $fecha, $estado, $vendedor, $metodo_pago, $cobrado, $tipo_facturacion, $total, $notas]);
 
         $vid = $pdo->lastInsertId();
         $stmtItem = $pdo->prepare("INSERT INTO venta_items (venta_id,producto_id,descripcion,cantidad,precio_unitario) VALUES (?,?,?,?,?)");
@@ -117,6 +121,43 @@ require_once '../includes/header.php';
             <option value="pendiente">Pendiente</option>
             <option value="confirmada">Confirmada</option>
           </select>
+        </div>
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-1">Vendedor</label>
+          <input type="text" name="vendedor" list="vendedores-list" placeholder="Gerencia, Nicolás…"
+            class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+          <datalist id="vendedores-list">
+            <option value="Gerencia">
+            <option value="Nicolás">
+            <option value="Etienne">
+            <option value="Jose Boschetti">
+            <option value="Augustin">
+          </datalist>
+        </div>
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-1">Método de pago</label>
+          <select name="metodo_pago"
+            class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+            <option value="">— Sin especificar —</option>
+            <option value="Efectivo">Efectivo</option>
+            <option value="Transferencia">Transferencia</option>
+            <option value="Cheques">Cheques</option>
+            <option value="Dólares">Dólares</option>
+            <option value="Otro">Otro</option>
+          </select>
+        </div>
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-1">Tipo</label>
+          <select name="tipo_facturacion"
+            class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+            <option value="manual">Manual</option>
+            <option value="facturada">Facturada</option>
+          </select>
+        </div>
+        <div class="flex items-center gap-2 pt-5">
+          <input type="checkbox" name="cobrado" id="cobrado" value="1"
+            class="w-4 h-4 rounded border-gray-300 text-blue-600">
+          <label for="cobrado" class="text-sm font-medium text-gray-700">Cobrado</label>
         </div>
         <div class="sm:col-span-2">
           <label class="block text-sm font-medium text-gray-700 mb-1">Notas</label>
