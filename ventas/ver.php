@@ -3,7 +3,7 @@ require_once '../config/db.php';
 
 $id = (int)($_GET['id'] ?? 0);
 $stmt = $pdo->prepare("
-    SELECT v.*, c.nombre AS cliente_nombre, c.empresa, c.telefono,
+    SELECT v.*, c.nombre AS cliente_nombre_fk, c.empresa, c.telefono,
            c.ciudad, c.provincia, c.direccion, c.email, c.cuit
     FROM ventas v
     LEFT JOIN clientes c ON c.id = v.cliente_id
@@ -13,14 +13,27 @@ $stmt->execute([$id]);
 $v = $stmt->fetch();
 if (!$v) { flash('Venta no encontrada.','error'); redirect('/ventas/'); }
 
-$items_stmt = $pdo->prepare('
-    SELECT vi.*, p.codigo_tango
-    FROM venta_items vi
-    LEFT JOIN productos p ON p.id = vi.producto_id
-    WHERE vi.venta_id = ? ORDER BY vi.id
-');
-$items_stmt->execute([$id]);
-$items = $items_stmt->fetchAll();
+// Nombre del cliente: FK o texto libre
+$v['_display_nombre'] = $v['empresa'] ?: $v['cliente_nombre_fk'] ?: $v['cliente_nombre'] ?? 'Sin cliente';
+
+// Buscar código Tango por nombre de producto
+$codigo_tango = null;
+if (!empty($v['producto'])) {
+    $pt = $pdo->prepare("SELECT codigo_tango FROM productos WHERE nombre LIKE ? AND codigo_tango IS NOT NULL AND codigo_tango != '' LIMIT 1");
+    $pt->execute(['%' . $v['producto'] . '%']);
+    $codigo_tango = $pt->fetchColumn() ?: null;
+}
+
+// Construir array $items compatible con el bloque Tango
+$items = [];
+if (!empty($v['producto'])) {
+    $items[] = [
+        'descripcion'    => $v['producto'],
+        'cantidad'       => $v['cantidad']        ?? 1,
+        'precio_unitario'=> $v['precio_unitario'] ?? 0,
+        'codigo_tango'   => $codigo_tango,
+    ];
+}
 
 $title = 'Venta #' . $id;
 require_once '../includes/header.php';
@@ -71,7 +84,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $lote           = trim($_POST['lote']           ?? '');
         $cuit_form      = trim($_POST['cuit_factura']   ?? $v['cuit'] ?? '');
         $iva_cat        = $_POST['iva_categoria']       ?? ($cuit_form ? 'RI' : 'CF');
-        $razon_social   = trim($_POST['razon_social']   ?? ($v['empresa'] ?: $v['cliente_nombre'] ?: ''));
+        $razon_social   = trim($_POST['razon_social']   ?? $v['_display_nombre']);
 
         // Pago
         $pago = ['PaymentMethodCode' => $medio_pago, 'Amount' => (float)$v['total']];
@@ -147,7 +160,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     <div class="flex items-start justify-between gap-3">
       <div>
         <p class="text-xs text-gray-400 mb-1">Venta #<?= $id ?></p>
-        <h2 class="text-lg font-semibold text-gray-900"><?= esc($v['empresa'] ?: $v['cliente_nombre'] ?: 'Sin cliente') ?></h2>
+        <h2 class="text-lg font-semibold text-gray-900"><?= esc($v['_display_nombre']) ?></h2>
         <?php if ($v['ciudad']): ?>
         <p class="text-sm text-gray-400"><?= esc($v['ciudad']) ?></p>
         <?php endif; ?>
@@ -356,7 +369,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             <div class="sm:col-span-2">
               <label class="block text-xs font-medium text-gray-600 mb-1">Razón social</label>
               <input type="text" name="razon_social" id="razon_social"
-                value="<?= esc($v['empresa'] ?: $v['cliente_nombre'] ?? '') ?>"
+                value="<?= esc($v['_display_nombre']) ?>"
                 class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white">
             </div>
 
