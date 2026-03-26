@@ -2,16 +2,16 @@
 // Detectar módulo activo por ruta del script
 $_scriptPath = str_replace('\\', '/', $_SERVER['SCRIPT_FILENAME']);
 $_activeModule = 'dashboard';
-foreach (['clientes','catalogo','presupuestos','ventas','transportes','envios','viajes','tango'] as $_m) {
-    if (strpos($_scriptPath, "/{$_m}/") !== false) {
+foreach (['clientes','catalogo','presupuestos','ventas','transportes','logistica','tango'] as $_m) {
+    if ($_m === 'logistica' ? (strpos($_scriptPath, '/viajes/') !== false || strpos($_scriptPath, '/envios/') !== false) : strpos($_scriptPath, "/{$_m}/") !== false) {
         $_activeModule = $_m;
         break;
     }
 }
 
-function _navLink(string $module, string $label, string $svgPath, string $active): void
+function _navLink(string $module, string $label, string $svgPath, string $active, string $url = ''): void
 {
-    $url   = BASE_URL . '/' . $module . '/';
+    $url   = $url ?: BASE_URL . '/' . $module . '/';
     $isOn  = $active === $module;
     $base  = 'flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm transition-colors duration-150';
     $cls   = $isOn
@@ -93,16 +93,12 @@ function _navSection(string $label): void
 
       <?php _navSection('Logística'); ?>
 
-      <?php _navLink('envios', 'Envíos',
-        '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8m-9 4h4"/>',
-      $_activeModule); ?>
-
-      <?php _navLink('viajes', 'Viajes',
-        '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17a2 2 0 11-4 0 2 2 0 014 0zM19 17a2 2 0 11-4 0 2 2 0 014 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16V6a1 1 0 00-1-1H4a1 1 0 00-1 1v10a1 1 0 001 1h1m8-1a1 1 0 01-1 1H9m4-1V8a1 1 0 011-1h2.586a1 1 0 01.707.293l3.414 3.414a1 1 0 01.293.707V16a1 1 0 01-1 1h-1"/>',
-      $_activeModule); ?>
+      <?php _navLink('logistica', 'Logística',
+        '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/>',
+      $_activeModule, BASE_URL . '/viajes/'); ?>
 
       <?php _navLink('transportes', 'Transportes',
-        '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"/>',
+        '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17a2 2 0 11-4 0 2 2 0 014 0zM19 17a2 2 0 11-4 0 2 2 0 014 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16V6a1 1 0 00-1-1H4a1 1 0 00-1 1v10a1 1 0 001 1h1m8-1a1 1 0 01-1 1H9m4-1V8a1 1 0 011-1h2.586a1 1 0 01.707.293l3.414 3.414a1 1 0 01.293.707V16a1 1 0 01-1 1h-1"/>',
       $_activeModule); ?>
 
       <?php _navSection('Integración'); ?>
