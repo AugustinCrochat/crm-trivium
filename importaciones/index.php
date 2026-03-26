@@ -3,8 +3,10 @@ require_once '../config/db.php';
 $title = 'Importaciones';
 require_once '../includes/header.php';
 
-$estado = $_GET['estado'] ?? 'todos';
-$q      = trim($_GET['q'] ?? '');
+$estado       = $_GET['estado']       ?? 'todos';
+$q            = trim($_GET['q']       ?? '');
+$familia      = trim($_GET['familia'] ?? '');
+$forwarder_id = (int)($_GET['forwarder_id'] ?? 0);
 
 $where  = [];
 $params = [];
@@ -18,33 +20,69 @@ if ($q !== '') {
     $where[]  = '(i.proveedor LIKE ? OR i.numero_proforma LIKE ? OR i.numero_bl LIKE ? OR i.familia_productos LIKE ?)';
     $params   = array_merge($params, [$like, $like, $like, $like]);
 }
+if ($familia !== '') {
+    $where[]  = 'i.familia_productos = ?';
+    $params[] = $familia;
+}
+if ($forwarder_id > 0) {
+    $where[]  = 'i.forwarder_id = ?';
+    $params[] = $forwarder_id;
+}
 
 $sql = "SELECT i.*, f.nombre AS forwarder_nombre
         FROM importaciones i
         LEFT JOIN forwarders f ON f.id = i.forwarder_id";
 if ($where) $sql .= ' WHERE ' . implode(' AND ', $where);
-$sql .= ' ORDER BY ISNULL(i.eta) ASC, i.eta ASC, i.created_at DESC';
+$sql .= ' ORDER BY FIELD(i.estado,\'embarcado\',\'pendiente\',\'arribado\',\'cerrado\'), ISNULL(i.eta) ASC, i.eta ASC, i.created_at DESC';
 
 $stmt = $pdo->prepare($sql);
 $stmt->execute($params);
 $importaciones = $stmt->fetchAll();
 
+// Para los dropdowns de filtro
+$familias   = $pdo->query("SELECT DISTINCT familia_productos FROM importaciones WHERE familia_productos IS NOT NULL AND familia_productos != '' ORDER BY familia_productos")->fetchAll(PDO::FETCH_COLUMN);
+$forwarders = $pdo->query("SELECT id, nombre FROM forwarders WHERE activo=1 ORDER BY nombre")->fetchAll();
+
 $labels_estado = ['todos'=>'Todos','pendiente'=>'Pendiente','embarcado'=>'Embarcado','arribado'=>'Arribado','cerrado'=>'Cerrado'];
 
 function iUrl(array $override): string {
     $p = array_filter(array_merge([
-        'estado' => $_GET['estado'] ?? 'todos',
-        'q'      => $_GET['q']      ?? '',
-    ], $override), fn($v) => $v !== '' && $v !== 'todos');
+        'estado'       => $_GET['estado']       ?? 'todos',
+        'q'            => $_GET['q']            ?? '',
+        'familia'      => $_GET['familia']      ?? '',
+        'forwarder_id' => $_GET['forwarder_id'] ?? '',
+    ], $override), fn($v) => $v !== '' && $v !== 'todos' && $v !== '0');
     return '?' . http_build_query($p);
 }
+
+$hay_filtros = $familia !== '' || $forwarder_id > 0 || $q !== '';
 ?>
 
 <div class="flex items-center justify-between mb-3 gap-3">
-  <form method="GET" class="flex gap-2 flex-1 max-w-xs">
+  <form method="GET" class="flex gap-2 flex-1" id="form-filtros">
     <input type="hidden" name="estado" value="<?= esc($estado) ?>">
     <input type="search" name="q" value="<?= esc($q) ?>" placeholder="Proveedor, proforma, B/L…"
-      class="flex-1 border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+      class="flex-1 min-w-0 border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+    <select name="familia" onchange="document.getElementById('form-filtros').submit()"
+      class="border border-gray-300 rounded-lg px-2 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white">
+      <option value="">Familia…</option>
+      <?php foreach ($familias as $f): ?>
+      <option value="<?= esc($f) ?>" <?= $familia === $f ? 'selected' : '' ?>><?= esc($f) ?></option>
+      <?php endforeach; ?>
+    </select>
+    <?php if ($forwarders): ?>
+    <select name="forwarder_id" onchange="document.getElementById('form-filtros').submit()"
+      class="border border-gray-300 rounded-lg px-2 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white">
+      <option value="">Forwarder…</option>
+      <?php foreach ($forwarders as $fw): ?>
+      <option value="<?= $fw['id'] ?>" <?= $forwarder_id == $fw['id'] ? 'selected' : '' ?>><?= esc($fw['nombre']) ?></option>
+      <?php endforeach; ?>
+    </select>
+    <?php endif; ?>
+    <?php if ($hay_filtros): ?>
+    <a href="?estado=<?= esc($estado) ?>"
+      class="flex items-center px-2 py-2 text-gray-400 hover:text-gray-600 text-sm" title="Limpiar filtros">✕</a>
+    <?php endif; ?>
   </form>
   <a href="<?= BASE_URL ?>/importaciones/nuevo.php"
     class="flex-shrink-0 bg-blue-600 text-white text-sm font-medium px-4 py-2 rounded-lg hover:bg-blue-700">
@@ -65,7 +103,7 @@ function iUrl(array $override): string {
 
 <?php if (!$importaciones): ?>
 <div class="bg-white rounded-xl border border-gray-200 p-12 text-center">
-  <p class="text-gray-400 text-sm">No hay importaciones</p>
+  <p class="text-gray-400 text-sm">No hay importaciones<?= $hay_filtros ? ' con esos filtros' : '' ?></p>
 </div>
 <?php else: ?>
 <div class="space-y-2">
