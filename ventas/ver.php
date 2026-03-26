@@ -314,7 +314,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
               </select>
             </div>
 
-            <div>
+            <div class="sm:col-span-2 flex items-center gap-3 pb-1 border-b border-gray-200">
+              <label class="flex items-center gap-2 cursor-pointer text-sm text-gray-600">
+                <input type="checkbox" id="chk_ocasional" onchange="toggleOcasional(this.checked)"
+                  class="rounded border-gray-300 text-blue-600">
+                Cliente ocasional (no está en Tango)
+              </label>
+            </div>
+
+            <div id="fila-tipo-doc">
               <label class="block text-xs font-medium text-gray-600 mb-1">Tipo de documento</label>
               <select name="tipo_documento" id="tipo_documento"
                 class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white">
@@ -324,15 +332,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
               </select>
             </div>
 
-            <div class="relative">
+            <div class="relative" id="fila-nro-doc">
               <label class="block text-xs font-medium text-gray-600 mb-1">Número de documento</label>
-              <div class="flex gap-2">
-                <input type="text" name="cuit_factura" id="cuit_factura"
-                  value="<?= esc($v['cuit'] ?? '') ?>"
-                  placeholder="20-12345678-5" autocomplete="off"
-                  oninput="buscarCliente(this.value)"
-                  class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white">
-              </div>
+              <input type="text" name="cuit_factura" id="cuit_factura"
+                value="<?= esc($v['cuit'] ?? '') ?>"
+                placeholder="20-12345678-5" autocomplete="off"
+                oninput="buscarCliente(this.value)"
+                class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white">
               <div id="sugerencias-cliente" class="absolute z-10 w-full bg-white border border-gray-200 rounded-lg shadow-lg mt-1 hidden text-sm"></div>
             </div>
 
@@ -393,6 +399,22 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         const tarjetaCodes = <?= json_encode(array_values($medios_tarjeta)) ?>;
         function toggleTarjeta(val) {
             document.getElementById('datos-tarjeta').classList.toggle('hidden', !tarjetaCodes.includes(val));
+        }
+
+        function toggleOcasional(ocasional) {
+            document.getElementById('fila-tipo-doc').classList.toggle('hidden', ocasional);
+            document.getElementById('fila-nro-doc').classList.toggle('hidden', ocasional);
+            document.getElementById('sugerencias-cliente').classList.add('hidden');
+            if (ocasional) {
+                document.getElementById('cuit_factura').value = '';
+                document.getElementById('razon_social').value = '';
+                // Factura B por defecto para ocasional
+                const tc = document.querySelector('[name="tipo_comprobante"]');
+                for (let o of tc.options) { if (o.value === '36') { o.selected = true; break; } }
+                // CF por defecto
+                const iva = document.getElementById('iva_categoria');
+                for (let o of iva.options) { if (o.value === 'CF') { o.selected = true; break; } }
+            }
         }
 
         const ivaMap = { '80':'RI', '86':'RS', '96':'CF' };
