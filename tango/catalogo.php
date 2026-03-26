@@ -12,6 +12,15 @@ if (isset($_GET['test'])) {
     $resultado = ['tipo' => 'test', 'ok' => ($r['isOk'] ?? false), 'msg' => $r['Message'] ?? json_encode($r)];
 }
 
+// ── Debug: ver estructura real de respuesta ─────────────────────
+if (isset($_GET['debug'])) {
+    $r = tango_get('Product', ['pageSize' => 2, 'pageNumber' => 1, 'onlyEnabled' => 'true']);
+    unset($r['Data']); // no mostrar los productos, solo la estructura
+    header('Content-Type: application/json');
+    echo json_encode($r, JSON_PRETTY_PRINT);
+    exit;
+}
+
 // ── Sync productos ─────────────────────────────────────────────
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['sync_productos'])) {
     verify_csrf();
