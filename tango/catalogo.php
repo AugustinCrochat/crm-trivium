@@ -52,9 +52,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['sync_productos'])) {
             }
         }
 
-        $totalPag = $res['TotalPages'] ?? 1;
         $page++;
-    } while ($page <= $totalPag);
+    } while (!empty($res['Paging']['MoreData']));
 
     $resultado = ['tipo' => 'productos', 'ok' => empty($errores),
         'msg' => "Nuevos: {$nuevos} | Actualizados: {$actualizados}" . (count($errores) ? ' | Errores: ' . implode(', ', $errores) : '')];
@@ -82,9 +81,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['sync_precios'])) {
             if ($rows->rowCount()) $actualizados++;
         }
 
-        $totalPag = $res['TotalPages'] ?? 1;
         $page++;
-    } while ($page <= $totalPag);
+    } while (!empty($res['Paging']['MoreData']));
 
     $resultado = ['tipo' => 'precios', 'ok' => empty($errores),
         'msg' => "Precios actualizados: {$actualizados}" . (count($errores) ? ' | ' . implode(', ', $errores) : '')];
@@ -115,9 +113,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['sync_stock'])) {
             if ($rows->rowCount()) $actualizados++;
         }
 
-        $totalPag = $res['TotalPages'] ?? 1;
         $page++;
-    } while ($page <= $totalPag);
+    } while (!empty($res['Paging']['MoreData']));
 
     $resultado = ['tipo' => 'stock', 'ok' => empty($errores),
         'msg' => "Stock actualizado: {$actualizados} productos" . (count($errores) ? ' | ' . implode(', ', $errores) : '')];
