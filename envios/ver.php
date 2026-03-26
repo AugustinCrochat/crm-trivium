@@ -31,10 +31,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         if (in_array($nuevo, $validos)) {
             $pdo->prepare("UPDATE envios SET estado=? WHERE id=?")->execute([$nuevo, $id]);
 
-            // Si se entrega, actualizar estado del cliente a 'guardado'
-            if ($nuevo === 'entregado' && $e['cliente_id']) {
-                $pdo->prepare("UPDATE clientes SET estado='guardado' WHERE id=? AND estado='en_envio'")
-                    ->execute([$e['cliente_id']]);
+            if ($nuevo === 'entregado') {
+                // Marcar venta como entregada si está asociada
+                if ($e['venta_id_ref']) {
+                    $pdo->prepare("UPDATE ventas SET entregado=1 WHERE id=?")
+                        ->execute([$e['venta_id_ref']]);
+                }
+                // Actualizar estado del cliente a 'guardado'
+                if ($e['cliente_id']) {
+                    $pdo->prepare("UPDATE clientes SET estado='guardado' WHERE id=? AND estado='en_envio'")
+                        ->execute([$e['cliente_id']]);
+                }
             }
             flash('Estado actualizado.');
             redirect('/envios/ver.php?id=' . $id);

@@ -26,16 +26,17 @@ if ($presupuesto_id_default) {
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     verify_csrf();
     $cliente_id        = (int)($_POST['cliente_id']     ?? 0) ?: null;
+    $cliente_texto     = trim($_POST['cliente_texto']   ?? '');
     $presupuesto_id    = (int)($_POST['presupuesto_id'] ?? 0) ?: null;
     $fecha             = $_POST['fecha']             ?? date('Y-m-d');
-    $estado            = $_POST['estado']            ?? 'pendiente';
     $vendedor          = trim($_POST['vendedor']      ?? '');
     $metodo_pago       = trim($_POST['metodo_pago']   ?? '');
     $cobrado           = isset($_POST['cobrado']) ? 1 : 0;
-    $tipo_facturacion  = $_POST['tipo_facturacion']  === 'facturada' ? 'facturada' : 'manual';
+    $tipo_facturacion  = ($_POST['tipo_facturacion'] ?? '') === 'facturada' ? 'facturada' : 'manual';
     $notas             = trim($_POST['notas']         ?? '');
     $items             = array_filter($_POST['items'] ?? [], fn($it) => trim($it['descripcion'] ?? '') !== '');
 
+    if (!$cliente_id && $cliente_texto === '') $errors[] = 'Ingresá o seleccioná un cliente.';
     if (empty($items)) $errors[] = 'Agregá al menos un ítem.';
 
     if (!$errors) {
@@ -43,8 +44,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         foreach ($items as $it) {
             $total += (float)($it['cantidad'] ?? 1) * (float)($it['precio_unitario'] ?? 0);
         }
-        $pdo->prepare("INSERT INTO ventas (cliente_id,presupuesto_id,fecha,estado,vendedor,metodo_pago,cobrado,tipo_facturacion,total,notas) VALUES (?,?,?,?,?,?,?,?,?,?)")
-            ->execute([$cliente_id, $presupuesto_id, $fecha, $estado, $vendedor, $metodo_pago, $cobrado, $tipo_facturacion, $total, $notas]);
+        $pdo->prepare("INSERT INTO ventas (cliente_id,cliente_texto,presupuesto_id,fecha,vendedor,metodo_pago,cobrado,tipo_facturacion,total,notas) VALUES (?,?,?,?,?,?,?,?,?,?)")
+            ->execute([$cliente_id, $cliente_texto ?: null, $presupuesto_id, $fecha, $vendedor, $metodo_pago, $cobrado, $tipo_facturacion, $total, $notas]);
 
         $vid = $pdo->lastInsertId();
         $stmtItem = $pdo->prepare("INSERT INTO venta_items (venta_id,producto_id,descripcion,cantidad,precio_unitario) VALUES (?,?,?,?,?)");
@@ -97,30 +98,37 @@ require_once '../includes/header.php';
     <div class="bg-white rounded-xl border border-gray-200 shadow-sm p-5">
       <h2 class="text-sm font-semibold text-gray-700 mb-4">Datos de la venta</h2>
       <div class="grid sm:grid-cols-2 gap-4">
+        <!-- Cliente -->
         <div class="sm:col-span-2">
-          <label class="block text-sm font-medium text-gray-700 mb-1">Cliente</label>
-          <select name="cliente_id"
-            class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
-            <option value="">— Sin asignar —</option>
-            <?php foreach ($clientes as $cl): ?>
-            <option value="<?= $cl['id'] ?>" <?= (int)$cl['id'] === $cliente_id_default ? 'selected' : '' ?>>
-              <?= esc($cl['nombre']) ?><?= $cl['empresa'] ? ' — ' . esc($cl['empresa']) : '' ?>
-            </option>
-            <?php endforeach; ?>
-          </select>
+          <div class="flex items-center justify-between mb-1">
+            <label class="text-sm font-medium text-gray-700">Cliente *</label>
+            <div class="flex gap-3 text-xs">
+              <button type="button" id="btn-lista" onclick="usarLista()" class="text-blue-600 hover:underline">Seleccionar de lista</button>
+              <button type="button" id="btn-manual" onclick="usarManual()" class="text-gray-400 hover:underline">Escribir nombre</button>
+              <a href="<?= BASE_URL ?>/clientes/nuevo.php" target="_blank" class="text-green-600 hover:underline">+ Crear cliente</a>
+            </div>
+          </div>
+          <div id="bloque-lista">
+            <select name="cliente_id" id="select-cliente"
+              class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+              <option value="">— Sin asignar —</option>
+              <?php foreach ($clientes as $cl): ?>
+              <option value="<?= $cl['id'] ?>" <?= (int)$cl['id'] === $cliente_id_default ? 'selected' : '' ?>>
+                <?= esc($cl['nombre']) ?><?= $cl['empresa'] ? ' — ' . esc($cl['empresa']) : '' ?>
+              </option>
+              <?php endforeach; ?>
+            </select>
+          </div>
+          <div id="bloque-manual" class="hidden">
+            <input type="text" name="cliente_texto" id="input-cliente-texto"
+              placeholder="Nombre del cliente o empresa"
+              class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+          </div>
         </div>
         <div>
           <label class="block text-sm font-medium text-gray-700 mb-1">Fecha</label>
           <input type="date" name="fecha" value="<?= date('Y-m-d') ?>"
             class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
-        </div>
-        <div>
-          <label class="block text-sm font-medium text-gray-700 mb-1">Estado</label>
-          <select name="estado"
-            class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
-            <option value="pendiente">Pendiente</option>
-            <option value="confirmada">Confirmada</option>
-          </select>
         </div>
         <div>
           <label class="block text-sm font-medium text-gray-700 mb-1">Vendedor</label>
@@ -227,6 +235,21 @@ require_once '../includes/header.php';
 
 <script>
 const BASE_URL = '<?= BASE_URL ?>';
+
+function usarLista() {
+    document.getElementById('bloque-lista').classList.remove('hidden');
+    document.getElementById('bloque-manual').classList.add('hidden');
+    document.getElementById('input-cliente-texto').value = '';
+    document.getElementById('btn-lista').className = 'text-blue-600 hover:underline';
+    document.getElementById('btn-manual').className = 'text-gray-400 hover:underline';
+}
+function usarManual() {
+    document.getElementById('bloque-lista').classList.add('hidden');
+    document.getElementById('bloque-manual').classList.remove('hidden');
+    document.getElementById('select-cliente').value = '';
+    document.getElementById('btn-lista').className = 'text-gray-400 hover:underline';
+    document.getElementById('btn-manual').className = 'text-blue-600 hover:underline';
+}
 let itemIdx = <?= count($pres_items) ?>;
 function formatMoney(n) {
   return '$ ' + parseFloat(n||0).toLocaleString('es-AR',{minimumFractionDigits:2,maximumFractionDigits:2});
