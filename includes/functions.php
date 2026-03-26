@@ -51,6 +51,10 @@ function badge(string $estado): string
         'completado'              => 'bg-green-100 text-green-800',
         // Envíos
         'en_transito'             => 'bg-blue-100 text-blue-800',
+        // Importaciones
+        'embarcado'               => 'bg-blue-100 text-blue-800',
+        'arribado'                => 'bg-indigo-100 text-indigo-800',
+        'cerrado'                 => 'bg-gray-100 text-gray-600',
     ];
     $class = $colors[$estado] ?? 'bg-gray-100 text-gray-600';
     $labels = [
@@ -70,6 +74,9 @@ function badge(string $estado): string
         'en_curso'    => 'En curso',
         'completado'  => 'Completado',
         'en_transito' => 'En tránsito',
+        'embarcado'   => 'Embarcado',
+        'arribado'    => 'Arribado',
+        'cerrado'     => 'Cerrado',
     ];
     $label = $labels[$estado] ?? ucfirst(str_replace('_', ' ', $estado));
     return "<span class=\"inline-block px-2 py-0.5 text-xs font-medium rounded-full {$class}\">{$label}</span>";
