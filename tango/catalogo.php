@@ -185,6 +185,51 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['sync_clientes'])) {
         'msg' => "Nuevos: {$nuevos} | Actualizados: {$actualizados}" . (count($errores) ? ' | ' . implode(', ', $errores) : '')];
 }
 
+// ── Importar clientes de Tango al CRM ──────────────────────────
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['importar_clientes'])) {
+    verify_csrf();
+
+    $provincias = [
+        '0'=>'Capital Federal','1'=>'Buenos Aires','2'=>'Catamarca','3'=>'Córdoba',
+        '4'=>'Corrientes','5'=>'Entre Ríos','6'=>'Jujuy','7'=>'La Pampa',
+        '8'=>'La Rioja','9'=>'Mendoza','10'=>'Misiones','11'=>'Neuquén',
+        '12'=>'Santa Fe','13'=>'Chaco','14'=>'Tucumán','15'=>'Salta',
+        '16'=>'San Juan','17'=>'Chubut','18'=>'San Luis','19'=>'Misiones',
+        '20'=>'Santa Cruz','21'=>'Santiago del Estero','22'=>'Río Negro',
+        '23'=>'Tierra del Fuego','24'=>'Formosa',
+    ];
+
+    $nuevos = 0; $omitidos = 0;
+    $rows = $pdo->query("SELECT * FROM tango_clientes WHERE razon_social != ''")->fetchAll();
+
+    foreach ($rows as $tc) {
+        $cuit = trim($tc['numero_documento'] ?? '');
+        // Skip si ya existe un cliente con ese CUIT
+        if ($cuit) {
+            $existe = $pdo->prepare("SELECT id FROM clientes WHERE cuit = ?");
+            $existe->execute([$cuit]);
+            if ($existe->fetchColumn()) { $omitidos++; continue; }
+        }
+        $pdo->prepare("
+            INSERT INTO clientes (nombre, empresa, cuit, telefono, email, direccion, ciudad, provincia, estado, notas)
+            VALUES (?,?,?,?,?,?,?,?,'activo','Importado desde Tango')
+        ")->execute([
+            $tc['razon_social'],
+            $tc['nombre_fantasia'] ?: $tc['razon_social'],
+            $cuit ?: null,
+            $tc['telefono'] ?? '',
+            $tc['email']    ?? '',
+            $tc['direccion'] ?? '',
+            $tc['ciudad']    ?? '',
+            $provincias[$tc['provincia_code'] ?? ''] ?? '',
+        ]);
+        $nuevos++;
+    }
+
+    $resultado = ['tipo' => 'importar_clientes', 'ok' => true,
+        'msg' => "Importados: {$nuevos} clientes | Omitidos (ya existían): {$omitidos}"];
+}
+
 // ── Sync stock ─────────────────────────────────────────────────
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['sync_stock'])) {
     verify_csrf();
@@ -290,6 +335,21 @@ $sin_precio       = $pdo->query("SELECT COUNT(*) FROM productos WHERE precio = 0
           </div>
           <svg class="w-5 h-5 text-yellow-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/>
+          </svg>
+        </button>
+      </form>
+
+      <form method="POST">
+        <?= csrf_field() ?>
+        <button name="importar_clientes" value="1"
+          onclick="return confirm('¿Importar los clientes de Tango al CRM? Se omiten los que ya existen por CUIT.')"
+          class="w-full flex items-center justify-between px-4 py-3 bg-indigo-50 border border-indigo-200 rounded-lg hover:bg-indigo-100 transition-colors text-left">
+          <div>
+            <p class="text-sm font-medium text-indigo-800">Importar clientes al CRM</p>
+            <p class="text-xs text-indigo-600">Copia los clientes de Tango al módulo de Clientes</p>
+          </div>
+          <svg class="w-5 h-5 text-indigo-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
           </svg>
         </button>
       </form>
