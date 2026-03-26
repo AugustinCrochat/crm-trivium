@@ -1,0 +1,30 @@
+/* Overrides mínimos sobre Tailwind CDN */
+
+/* Evita el layout shift del sidebar en desktop */
+@media (min-width: 1024px) {
+  #sidebar { transform: none !important; }
+  #overlay { display: none !important; }
+}
+
+/* Inputs y selects consistentes */
+input[type="text"],
+input[type="email"],
+input[type="number"],
+input[type="date"],
+input[type="tel"],
+input[type="password"],
+input[type="search"],
+select,
+textarea {
+  -webkit-appearance: none;
+  appearance: none;
+}
+
+/* Scrollbar más sutil en tablas */
+.overflow-x-auto::-webkit-scrollbar { height: 4px; }
+.overflow-x-auto::-webkit-scrollbar-track { background: #f1f5f9; }
+.overflow-x-auto::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 2px; }
+
+/* Línea divisora de tabla */
+table tbody tr { border-bottom: 1px solid #f1f5f9; }
+table tbody tr:last-child { border-bottom: none; }

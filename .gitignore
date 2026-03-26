@@ -1,0 +1,12 @@
+# Config generado en runtime
+config/tango.json
+
+# Uploads de usuarios
+uploads/
+
+# Logs
+logs/
+
+# OS
+.DS_Store
+Thumbs.db
