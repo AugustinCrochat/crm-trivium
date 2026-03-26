@@ -21,20 +21,48 @@ if (isset($_GET['debug'])) {
     exit;
 }
 
-// ── Debug: buscar cliente por CUIT/DNI ──────────────────────────
+// ── Debug: primer página de clientes ────────────────────────────
 if (isset($_GET['debug_customer'])) {
-    $taxId = preg_replace('/[^0-9]/', '', $_GET['debug_customer']);
-    $r = tango_get('Customer', ['taxId' => $taxId]);
+    $r = tango_get('Customer', ['pageSize' => 2, 'pageNumber' => 1]);
+    unset($r['Data']);
     header('Content-Type: application/json');
     echo json_encode($r, JSON_PRETTY_PRINT);
     exit;
 }
 
-// ── Debug: ver razones de ajuste de stock ───────────────────────
-if (isset($_GET['debug_stock_reasons'])) {
-    $r = tango_get('StockAdjustmentReason');
+// ── Debug: ver si tango_clientes existe y cuántos hay ───────────
+if (isset($_GET['debug_clientes_tabla'])) {
+    header('Content-Type: application/json');
+    try {
+        $count = $pdo->query("SELECT COUNT(*) FROM tango_clientes")->fetchColumn();
+        echo json_encode(['tabla_existe' => true, 'registros' => $count]);
+    } catch (Exception $e) {
+        echo json_encode(['tabla_existe' => false, 'error' => $e->getMessage()]);
+    }
+    exit;
+}
+
+// ── Debug: muestra 3 registros de stock ─────────────────────────
+if (isset($_GET['debug_stock'])) {
+    $r = tango_get('Stock', ['pageSize' => 3, 'pageNumber' => 1]);
     header('Content-Type: application/json');
     echo json_encode($r, JSON_PRETTY_PRINT);
+    exit;
+}
+
+// ── Debug: compara SKU de stock vs productos en DB ───────────────
+if (isset($_GET['debug_stock_match'])) {
+    header('Content-Type: application/json');
+    $r = tango_get('Stock', ['pageSize' => 5, 'pageNumber' => 1]);
+    $skus = array_column($r['Data'] ?? [], 'SKUCode');
+    $matches = [];
+    foreach ($skus as $sku) {
+        $row = $pdo->prepare("SELECT id, nombre, codigo_tango FROM productos WHERE codigo_tango=?")->execute([$sku]);
+        $found = $pdo->prepare("SELECT id, nombre, codigo_tango FROM productos WHERE codigo_tango=?");
+        $found->execute([$sku]);
+        $matches[$sku] = $found->fetch() ?: 'NO MATCH';
+    }
+    echo json_encode(['stock_skus' => $skus, 'db_matches' => $matches], JSON_PRETTY_PRINT);
     exit;
 }
 
