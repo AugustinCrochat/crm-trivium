@@ -44,7 +44,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
     }
 
-    // Enviar orden a Tango
+    // Enviar orden a Tango / Facturar
     if (isset($_POST['enviar_tango'])) {
         require_once '../tango/api.php';
 
@@ -64,33 +64,54 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             redirect('/ventas/ver.php?id=' . $id);
         }
 
+        $tipo_comp      = $_POST['tipo_comprobante']  ?? '36';
+        $cond_venta     = $_POST['condicion_venta']   ?? TANGO_CONDICION_VENTA;
+        $medio_pago     = $_POST['medio_pago']         ?? '';
+        $cupon          = trim($_POST['cupon']          ?? '');
+        $lote           = trim($_POST['lote']           ?? '');
+        $cuit_form      = trim($_POST['cuit_factura']   ?? $v['cuit'] ?? '');
+        $iva_cat        = $_POST['iva_categoria']       ?? ($cuit_form ? 'RI' : 'CF');
+        $razon_social   = trim($_POST['razon_social']   ?? ($v['empresa'] ?: $v['cliente_nombre'] ?: ''));
+
+        // Pago
+        $pago = ['PaymentMethodCode' => $medio_pago, 'Amount' => (float)$v['total']];
+        if ($cupon) $pago['CouponNumber'] = $cupon;
+        if ($lote)  $pago['LotNumber']    = $lote;
+
         $payload = [
+            'InvoiceTypeCode' => $tipo_comp,
             'PriceListNumber' => TANGO_LISTA_PRECIO,
             'SalespersonCode' => TANGO_VENDEDOR,
-            'PaymentTermCode' => TANGO_CONDICION_VENTA,
+            'PaymentTermCode' => $cond_venta,
             'WarehouseCode'   => TANGO_DEPOSITO,
             'Customer' => [
-                'BusinessName' => $v['empresa'] ?: $v['cliente_nombre'] ?: 'Sin nombre',
-                'TaxIdNumber'  => $v['cuit']      ?: '0',
-                'IVACategory'  => $v['cuit']       ? 'RI' : 'CF',
-                'Email'        => $v['email']      ?: '',
-                'Address'      => $v['direccion']  ?: '',
-                'City'         => $v['ciudad']     ?: '',
+                'BusinessName' => $razon_social ?: 'Sin nombre',
+                'TaxIdNumber'  => $cuit_form    ?: '0',
+                'IVACategory'  => $iva_cat,
+                'Email'        => $v['email']     ?: '',
+                'Address'      => $v['direccion'] ?: '',
+                'City'         => $v['ciudad']    ?: '',
                 'Province'     => provincia_afip($v['provincia'] ?: ''),
             ],
-            'Items' => $tango_items,
+            'Payments' => [$pago],
+            'Items'    => $tango_items,
         ];
 
         $resp = tango_post('order', $payload);
 
-        if ($resp['ok'] ?? false) {
-            $orderId = $resp['data']['OrderId'] ?? $resp['data']['orderId'] ?? '';
+        if ($resp['isOk'] ?? false) {
+            $orderId = $resp['OrderId'] ?? $resp['orderId'] ?? '';
             $pdo->prepare("UPDATE ventas SET tango_order_id=?, sincronizado_tango=1 WHERE id=?")
                 ->execute([$orderId ?: null, $id]);
-            flash('Orden enviada a Tango correctamente.' . ($orderId ? " ID orden: {$orderId}" : ''));
+            // Actualizar CUIT en cliente si se ingresó uno nuevo
+            if ($cuit_form && !$v['cuit'] && $v['cliente_id']) {
+                $pdo->prepare("UPDATE clientes SET cuit=? WHERE id=?")
+                    ->execute([$cuit_form, $v['cliente_id']]);
+            }
+            flash('Factura enviada a Tango.' . ($orderId ? " ID: {$orderId}" : ''));
         } else {
-            $err = $resp['error'] ?? ($resp['data']['Message'] ?? 'Error desconocido');
-            flash("Error al enviar a Tango: {$err}", 'error');
+            $err = $resp['Message'] ?? $resp['error'] ?? json_encode($resp);
+            flash("Error al facturar en Tango: {$err}", 'error');
         }
         redirect('/ventas/ver.php?id=' . $id);
     }
@@ -239,27 +260,127 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
           <?php endif; ?>
         </div>
       <?php else: ?>
-        <form method="POST">
+        <?php
+        $sin_sku  = array_filter($items, fn($i) => empty($i['codigo_tango']));
+        $es_ri    = !empty($v['cuit']);
+        $medios   = [
+            '11101'  => 'Efectivo',
+            '11102'  => 'Cheque',
+            '111105' => 'Transferencia / Depósito',
+            '11140'  => 'Cuenta corriente',
+            '111201' => 'Débito Visa',
+            '111202' => 'Débito Mastercard',
+            '111211' => 'Crédito Visa',
+            '111212' => 'Crédito Mastercard',
+            '111213' => 'American Express',
+            '111214' => 'Otras tarjetas',
+        ];
+        $medios_tarjeta = ['111201','111202','111211','111212','111213','111214'];
+        ?>
+
+        <?php if ($sin_sku): ?>
+        <p class="text-xs text-amber-600 mb-3">
+          <?= count($sin_sku) ?> ítem(s) sin código Tango (SKU) — no se enviarán.
+        </p>
+        <?php endif; ?>
+
+        <button onclick="document.getElementById('form-facturar').classList.toggle('hidden')"
+          type="button"
+          class="inline-flex items-center gap-2 text-sm font-medium bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition-colors mb-3">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+          Facturar en Tango
+        </button>
+
+        <form method="POST" id="form-facturar" class="hidden border border-gray-200 rounded-xl p-4 space-y-3 bg-gray-50">
           <?= csrf_field() ?>
-          <?php
-          $sin_sku = array_filter($items, fn($i) => empty($i['codigo_tango']));
-          if ($sin_sku): ?>
-          <p class="text-xs text-amber-600 mb-2">
-            <?= count($sin_sku) ?> ítem(s) sin código Tango (SKU) — no se enviarán a Tango.
-          </p>
-          <?php endif; ?>
-          <?php if (!$v['cuit']): ?>
-          <p class="text-xs text-amber-600 mb-2">
-            El cliente no tiene CUIT — se enviará como Consumidor Final.
-            <a href="<?= BASE_URL ?>/clientes/editar.php?id=<?= $v['cliente_id'] ?>" class="underline">Agregar CUIT →</a>
-          </p>
-          <?php endif; ?>
-          <button type="submit" name="enviar_tango" value="1"
-            class="inline-flex items-center gap-2 text-sm font-medium bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition-colors">
-            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"/></svg>
-            Enviar a Tango / Facturar
-          </button>
+          <div class="grid sm:grid-cols-2 gap-3">
+
+            <div>
+              <label class="block text-xs font-medium text-gray-600 mb-1">Tipo de comprobante</label>
+              <select name="tipo_comprobante"
+                class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white">
+                <option value="30" <?= !$es_ri ? '' : 'selected' ?>>Factura A</option>
+                <option value="36" <?= !$es_ri ? 'selected' : '' ?>>Factura B</option>
+              </select>
+            </div>
+
+            <div>
+              <label class="block text-xs font-medium text-gray-600 mb-1">Condición de venta</label>
+              <select name="condicion_venta"
+                class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white">
+                <?php for ($i = 1; $i <= 22; $i++): ?>
+                <option value="<?= $i ?>" <?= $i == TANGO_CONDICION_VENTA ? 'selected' : '' ?>><?= $i ?></option>
+                <?php endfor; ?>
+              </select>
+            </div>
+
+            <div>
+              <label class="block text-xs font-medium text-gray-600 mb-1">CUIT / DNI</label>
+              <input type="text" name="cuit_factura" value="<?= esc($v['cuit'] ?? '') ?>"
+                placeholder="20-12345678-5"
+                class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white">
+            </div>
+
+            <div>
+              <label class="block text-xs font-medium text-gray-600 mb-1">Categoría IVA</label>
+              <select name="iva_categoria"
+                class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white">
+                <option value="RI" <?= $es_ri ? 'selected' : '' ?>>Responsable Inscripto</option>
+                <option value="CF" <?= !$es_ri ? 'selected' : '' ?>>Consumidor Final</option>
+                <option value="MO">Monotributista</option>
+                <option value="EX">Exento</option>
+              </select>
+            </div>
+
+            <div class="sm:col-span-2">
+              <label class="block text-xs font-medium text-gray-600 mb-1">Razón social</label>
+              <input type="text" name="razon_social"
+                value="<?= esc($v['empresa'] ?: $v['cliente_nombre'] ?? '') ?>"
+                class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white">
+            </div>
+
+            <div class="sm:col-span-2">
+              <label class="block text-xs font-medium text-gray-600 mb-1">Medio de pago</label>
+              <select name="medio_pago" id="medio_pago"
+                onchange="toggleTarjeta(this.value)"
+                class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white">
+                <option value="">— Seleccioná —</option>
+                <?php foreach ($medios as $cod => $label): ?>
+                <option value="<?= $cod ?>"><?= $label ?></option>
+                <?php endforeach; ?>
+              </select>
+            </div>
+
+            <div id="datos-tarjeta" class="sm:col-span-2 hidden grid sm:grid-cols-2 gap-3">
+              <div>
+                <label class="block text-xs font-medium text-gray-600 mb-1">N° de cupón</label>
+                <input type="text" name="cupon" placeholder="Ej: 000123"
+                  class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white">
+              </div>
+              <div>
+                <label class="block text-xs font-medium text-gray-600 mb-1">N° de lote</label>
+                <input type="text" name="lote" placeholder="Ej: 001"
+                  class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white">
+              </div>
+            </div>
+
+          </div>
+
+          <div class="flex justify-end pt-1">
+            <button type="submit" name="enviar_tango" value="1"
+              class="bg-green-600 text-white text-sm font-medium px-5 py-2 rounded-lg hover:bg-green-700 transition-colors">
+              Confirmar y facturar
+            </button>
+          </div>
         </form>
+
+        <script>
+        const tarjetaCodes = <?= json_encode(array_values($medios_tarjeta)) ?>;
+        function toggleTarjeta(val) {
+            const div = document.getElementById('datos-tarjeta');
+            div.classList.toggle('hidden', !tarjetaCodes.includes(val));
+        }
+        </script>
       <?php endif; ?>
     </div>
 
