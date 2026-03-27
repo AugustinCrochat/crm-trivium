@@ -28,206 +28,293 @@ foreach ($items as $it) {
 }
 $hay_iva = $iva_total > 0;
 
-$logo_b64 = 'PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0iVVRGLTgiIHN0YW5kYWxvbmU9Im5vIj8+CjwhLS0gQ3JlYXRlZCB3aXRoIElua3NjYXBlIChodHRwOi8vd3d3Lmlua3NjYXBlLm9yZy8pIC0tPgoKPHN2ZwogICB3aWR0aD0iOTUuNjEyMTM3bW0iCiAgIGhlaWdodD0iNDEuMjIyNjE4bW0iCiAgIHZpZXdCb3g9IjAgMCA5NS42MTIxMzcgNDEuMjIyNjE4IgogICB2ZXJzaW9uPSIxLjEiCiAgIGlkPSJzdmcxNjA3NCIKICAgaW5rc2NhcGU6dmVyc2lvbj0iMS4yLjIgKGIwYTg0ODY1NDEsIDIwMjItMTItMDEpIgogICBzb2RpcG9kaTpkb2NuYW1lPSJsb2dvIHRyaXZpdW0gY2VudGVyLnN2ZyIKICAgeG1sbnM6aW5rc2NhcGU9Imh0dHA6Ly93d3cuaW5rc2NhcGUub3JnL25hbWVzcGFjZXMvaW5rc2NhcGUiCiAgIHhtbG5zOnNvZGlwb2RpPSJodHRwOi8vc29kaXBvZGkuc291cmNlZm9yZ2UubmV0L0RURC9zb2RpcG9kaS0wLmR0ZCIKICAgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIgogICB4bWxuczpzdmc9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KICA8c29kaXBvZGk6bmFtZWR2aWV3CiAgICAgaWQ9Im5hbWVkdmlldzE2MDc2IgogICAgIHBhZ2Vjb2xvcj0iI2ZmZmZmZiIKICAgICBib3JkZXJjb2xvcj0iIzAwMDAwMCIKICAgICBib3JkZXJvcGFjaXR5PSIwLjI1IgogICAgIGlua3NjYXBlOnNob3dwYWdlc2hhZG93PSIyIgogICAgIGlua3NjYXBlOnBhZ2VvcGFjaXR5PSIwLjAiCiAgICAgaW5rc2NhcGU6cGFnZWNoZWNrZXJib2FyZD0iMCIKICAgICBpbmtzY2FwZTpkZXNrY29sb3I9IiNkMWQxZDEiCiAgICAgaW5rc2NhcGU6ZG9jdW1lbnQtdW5pdHM9Im1tIgogICAgIHNob3dncmlkPSJmYWxzZSIKICAgICBpbmtzY2FwZTp6b29tPSIyLjIwMjkyNTciCiAgICAgaW5rc2NhcGU6Y3g9IjE5Ny4wMTA3MyIKICAgICBpbmtzY2FwZTpjeT0iMTM5LjU4NzA5IgogICAgIGlua3NjYXBlOndpbmRvdy13aWR0aD0iMTg1NCIKICAgICBpbmtzY2FwZTp3aW5kb3ctaGVpZ2h0PSIxMDExIgogICAgIGlua3NjYXBlOndpbmRvdy14PSI2NiIKICAgICBpbmtzY2FwZTp3aW5kb3cteT0iMzIiCiAgICAgaW5rc2NhcGU6d2luZG93LW1heGltaXplZD0iMSIKICAgICBpbmtzY2FwZTpjdXJyZW50LWxheWVyPSJsYXllcjEiIC8+CiAgPGRlZnMKICAgICBpZD0iZGVmczE2MDcxIiAvPgogIDxnCiAgICAgaW5rc2NhcGU6bGFiZWw9IkxheWVyIDEiCiAgICAgaW5rc2NhcGU6Z3JvdXBtb2RlPSJsYXllciIKICAgICBpZD0ibGF5ZXIxIgogICAgIHRyYW5zZm9ybT0idHJhbnNsYXRlKC05OS4yODMwMDUsLTEwMi4xMzkyOCkiPgogICAgPHBhdGgKICAgICAgIGlkPSJyZWN0MjQ3NiIKICAgICAgIHN0eWxlPSJmaWxsOiMxYzFjMWM7c3Ryb2tlLXdpZHRoOjAuNjE5Nzg2O3N0cm9rZS1saW5lY2FwOnJvdW5kIgogICAgICAgZD0iTSA5OS4yODMwMDUsMTAyLjEzOTI4IEggMTk0Ljg5NTE0IFYgMTQzLjM2MTkgSCA5OS4yODMwMDUgWiIgLz4KICAgIDxnCiAgICAgICBpZD0iZzI0OTQiCiAgICAgICB0cmFuc2Zvcm09InRyYW5zbGF0ZSgzMjkuMjQxNTMsMTcxLjU2Mjc0KSIKICAgICAgIGlua3NjYXBlOmV4cG9ydC1maWxlbmFtZT0iQzpcVXNlcnNcYXVndXNcRG93bmxvYWRzXGxvZ28gZm9uZG8gZ3Jpcy5wbmciCiAgICAgICBpbmtzY2FwZTpleHBvcnQteGRwaT0iNjI2LjU2NTE5IgogICAgICAgaW5rc2NhcGU6ZXhwb3J0LXlkcGk9IjYyNi41NjUxOSI+CiAgICAgIDxnCiAgICAgICAgIHRyYW5zZm9ybT0ibWF0cml4KDAuNTQwMTcwNywwLDAsMC41NDAxNzA3LC0xMDcuMDIxMjEsMzMuNjc4NDM4KSIKICAgICAgICAgaWQ9ImcyNDkyIj4KICAgICAgICA8ZwogICAgICAgICAgIGFyaWEtbGFiZWw9IkNFTlRFUiIKICAgICAgICAgICBpZD0idGV4dDI0ODAiCiAgICAgICAgICAgc3R5bGU9ImZvbnQtc2l6ZTozMy43NzMxcHg7bGluZS1oZWlnaHQ6MS4yNTtsZXR0ZXItc3BhY2luZzowcHg7d29yZC1zcGFjaW5nOjBweDtmaWxsOiMzZTNlM2Y7c3Ryb2tlLXdpZHRoOjAuODQ0MzI4Ij4KICAgICAgICAgIDxwYXRoCiAgICAgICAgICAgICBkPSJtIC0xOTcuMDkzNTQsLTEyNC40MDE3IGMgMy4yNzU5OSwwIDcuMjk0OTksLTEuNTg3MzMgOS44NjE3NCwtMy44MTYzNiBsIC0zLjY0NzQ5LC00LjA4NjU0IGMgLTEuNTE5NzksMS41ODczMyAtMy45MTc2OCwyLjY2ODA3IC01LjcwNzY2LDIuNjY4MDcgLTIuNjAwNTMsMCAtNS4wNjU5NiwtMi4wNjAxNiAtNS4wNjU5NiwtNS4yMzQ4MyAwLC00LjI4OTE4IDQuMDE5LC04LjMwODE4IDguMzc1NzMsLTguMzA4MTggMS45OTI2MSwwIDMuNjEzNzIsMC45Nzk0MiA0LjQ1ODA1LDIuMjk2NTcgbCA0LjcyODIzLC0zLjQxMTA5IGMgLTEuODIzNzUsLTIuMzY0MTEgLTUuMDk5NzQsLTQuMTIwMzEgLTguODQ4NTUsLTQuMTIwMzEgLTcuNTk4OTUsMCAtMTQuNTU2MjEsNi40NTA2NiAtMTQuNTU2MjEsMTMuNjc4MSAwLDUuNzc1MiA0Ljc2MjAxLDEwLjMzNDU3IDEwLjQwMjEyLDEwLjMzNDU3IHoiCiAgICAgICAgICAgICBzdHlsZT0iZm9udC1zdHlsZTppdGFsaWM7Zm9udC13ZWlnaHQ6ODAwO2ZvbnQtZmFtaWx5Ok1ldHJvcG9saXM7LWlua3NjYXBlLWZvbnQtc3BlY2lmaWNhdGlvbjonTWV0cm9wb2xpcyBVbHRyYS1Cb2xkIEl0YWxpYyc7ZmlsbDojZmZmZmZmIgogICAgICAgICAgICAgaWQ9InBhdGgxNjYzOCIgLz4KICAgICAgICAgIDxwYXRoCiAgICAgICAgICAgICBkPSJtIC0xNjMuMDg0MDMsLTE0Mi44NDE4MSAxLjA4MDczLC01LjE2NzI5IGggLTE4LjI3MTI0IGwgLTQuODI5NTYsMjMuMjAyMTIgaCAxOC4yNzEyNSBsIDEuMDgwNzQsLTUuMTY3MjggaCAtMTIuNDYyMjcgbCAwLjgxMDU1LC00LjA4NjU1IGggMTEuMzQ3NzYgbCAxLjA4MDc0LC01LjE2NzI4IGggLTExLjI4MDIxIGwgMC42NzU0NiwtMy42MTM3MiB6IgogICAgICAgICAgICAgc3R5bGU9ImZvbnQtc3R5bGU6aXRhbGljO2ZvbnQtd2VpZ2h0OjgwMDtmb250LWZhbWlseTpNZXRyb3BvbGlzOy1pbmtzY2FwZS1mb250LXNwZWNpZmljYXRpb246J01ldHJvcG9saXMgVWx0cmEtQm9sZCBJdGFsaWMnO2ZpbGw6I2ZmZmZmZiIKICAgICAgICAgICAgIGlkPSJwYXRoMTY2NDAiIC8+CiAgICAgICAgICA8cGF0aAogICAgICAgICAgICAgZD0ibSAtMTYzLjE4NTM1LC0xMjQuODA2OTggaCA1Ljc3NTIgbCAyLjkwNDQ4LC0xMy43MTE4OCA3LjI5NDk5LDEzLjcxMTg4IGggNS42NzM4OCBsIDQuODI5NTYsLTIzLjIwMjEyIGggLTUuNzc1MiBsIC0yLjkwNDQ5LDEzLjcxMTg4IC03LjI2MTIyLC0xMy43MTE4OCBoIC01LjcwNzY1IHoiCiAgICAgICAgICAgICBzdHlsZT0iZm9udC1zdHlsZTppdGFsaWM7Zm9udC13ZWlnaHQ6ODAwO2ZvbnQtZmFtaWx5Ok1ldHJvcG9saXM7LWlua3NjYXBlLWZvbnQtc3BlY2lmaWNhdGlvbjonTWV0cm9wb2xpcyBVbHRyYS1Cb2xkIEl0YWxpYyc7ZmlsbDojZmZmZmZmIgogICAgICAgICAgICAgaWQ9InBhdGgxNjY0MiIgLz4KICAgICAgICAgIDxwYXRoCiAgICAgICAgICAgICBkPSJtIC0xMzEuMzAzNTYsLTEyNC44MDY5OCBoIDUuNzc1MiBsIDMuNzQ4ODIsLTE4LjAzNDgzIGggNy4wNTg1NyBsIDEuMDQ2OTcsLTUuMTY3MjkgaCAtMTkuODU4NTggbCAtMS4wNDY5Nyw1LjE2NzI5IGggNy4wMjQ4IHoiCiAgICAgICAgICAgICBzdHlsZT0iZm9udC1zdHlsZTppdGFsaWM7Zm9udC13ZWlnaHQ6ODAwO2ZvbnQtZmFtaWx5Ok1ldHJvcG9saXM7LWlua3NjYXBlLWZvbnQtc3BlY2lmaWNhdGlvbjonTWV0cm9wb2xpcyBVbHRyYS1Cb2xkIEl0YWxpYyc7ZmlsbDojZmZmZmZmIgogICAgICAgICAgICAgaWQ9InBhdGgxNjY0NCIgLz4KICAgICAgICAgIDxwYXRoCiAgICAgICAgICAgICBkPSJtIC05My40MTAxMzYsLTE0Mi44NDE4MSAxLjA4MDc0LC01LjE2NzI5IGggLTE4LjI3MTI0NCBsIC00LjgyOTU2LDIzLjIwMjEyIGggMTguMjcxMjUgbCAxLjA4MDczOSwtNS4xNjcyOCBoIC0xMi40NjIyNzkgbCAwLjgxMDU2LC00LjA4NjU1IGggMTEuMzQ3NzYxIGwgMS4wODA3NCwtNS4xNjcyOCBoIC0xMS4yODAyMjEgbCAwLjY3NTQ3LC0zLjYxMzcyIHoiCiAgICAgICAgICAgICBzdHlsZT0iZm9udC1zdHlsZTppdGFsaWM7Zm9udC13ZWlnaHQ6ODAwO2ZvbnQtZmFtaWx5Ok1ldHJvcG9saXM7LWlua3NjYXBlLWZvbnQtc3BlY2lmaWNhdGlvbjonTWV0cm9wb2xpcyBVbHRyYS1Cb2xkIEl0YWxpYyc7ZmlsbDojZmZmZmZmIgogICAgICAgICAgICAgaWQ9InBhdGgxNjY0NiIgLz4KICAgICAgICAgIDxwYXRoCiAgICAgICAgICAgICBkPSJtIC03MC43NDgzODcsLTE0MS4zNTU4IGMgMCwtMy45NTE0NSAtMy4wMDU4MDYsLTYuNjUzMyAtNy40NjM4NTYsLTYuNjUzMyBoIC0xMC41NzA5ODEgbCAtNC44Mjk1NTMsMjMuMjAyMTIgaCA1Ljc3NTIgbCAxLjUxOTc5LC03LjI2MTIxIGggMi45NzIwMzMgbCA0LjQyNDI3Niw3LjI2MTIxIGggNi40MTY4OSBsIC00Ljc5NTc4MSwtNy45MDI5IGMgMy44NTAxMzQsLTEuMzE3MTUgNi41NTE5ODIsLTQuNTkzMTQgNi41NTE5ODIsLTguNjQ1OTIgeiBtIC0xMy4zNDAzNzUsLTEuMzg0NjkgaCA0LjY5NDQ2MSBjIDEuNzIyNDI4LDAgMi43NjkzOTQsMC43MDkyMyAyLjc2OTM5NCwxLjgyMzc0IDAsMS43ODk5OCAtMi4wNjAxNTksMy41Nzk5NSAtNC4yMjE2MzgsMy41Nzk5NSBoIC00LjM5MDUwMyB6IgogICAgICAgICAgICAgc3R5bGU9ImZvbnQtc3R5bGU6aXRhbGljO2ZvbnQtd2VpZ2h0OjgwMDtmb250LWZhbWlseTpNZXRyb3BvbGlzOy1pbmtzY2FwZS1mb250LXNwZWNpZmljYXRpb246J01ldHJvcG9saXMgVWx0cmEtQm9sZCBJdGFsaWMnO2ZpbGw6I2ZmZmZmZiIKICAgICAgICAgICAgIGlkPSJwYXRoMTY2NDgiIC8+CiAgICAgICAgPC9nPgogICAgICAgIDxnCiAgICAgICAgICAgaWQ9ImcyNDkwIgogICAgICAgICAgIHRyYW5zZm9ybT0idHJhbnNsYXRlKC00LjkxMzY5MjgpIj4KICAgICAgICAgIDxnCiAgICAgICAgICAgICBhcmlhLWxhYmVsPSJSSVZJVU0iCiAgICAgICAgICAgICBpZD0idGV4dDI0ODQiCiAgICAgICAgICAgICBzdHlsZT0iZm9udC1zaXplOjMzLjc3MzFweDtsaW5lLWhlaWdodDoxLjI1O2xldHRlci1zcGFjaW5nOjBweDt3b3JkLXNwYWNpbmc6MHB4O2ZpbGw6IzNlM2UzZjtzdHJva2Utd2lkdGg6MC44NDQzMjgiPgogICAgICAgICAgICA8cGF0aAogICAgICAgICAgICAgICBkPSJtIC0xNjQuMzU3OTIsLTE3NC4zNjkwOSBjIDAsLTMuOTUxNDUgLTMuMDA1ODEsLTYuNjUzMyAtNy40NjM4NiwtNi42NTMzIGggLTEwLjU3MDk4IGwgLTQuODI5NTUsMjMuMjAyMTIgaCA1Ljc3NTIgbCAxLjUxOTc5LC03LjI2MTIxIGggMi45NzIwMyBsIDQuNDI0MjgsNy4yNjEyMSBoIDYuNDE2ODkgbCAtNC43OTU3OCwtNy45MDI5IGMgMy44NTAxMywtMS4zMTcxNSA2LjU1MTk4LC00LjU5MzE0IDYuNTUxOTgsLTguNjQ1OTIgeiBtIC0xMy4zNDAzOCwtMS4zODQ2OSBoIDQuNjk0NDYgYyAxLjcyMjQzLDAgMi43Njk0LDAuNzA5MjMgMi43Njk0LDEuODIzNzQgMCwxLjc4OTk4IC0yLjA2MDE2LDMuNTc5OTUgLTQuMjIxNjQsMy41Nzk5NSBoIC00LjM5MDUgeiIKICAgICAgICAgICAgICAgc3R5bGU9ImZvbnQtc3R5bGU6aXRhbGljO2ZvbnQtd2VpZ2h0OjgwMDtmb250LWZhbWlseTpNZXRyb3BvbGlzOy1pbmtzY2FwZS1mb250LXNwZWNpZmljYXRpb246J01ldHJvcG9saXMgVWx0cmEtQm9sZCBJdGFsaWMnO2ZpbGw6I2ZmZmZmZiIKICAgICAgICAgICAgICAgaWQ9InBhdGgxNjY1MSIgLz4KICAgICAgICAgICAgPHBhdGgKICAgICAgICAgICAgICAgZD0ibSAtMTYzLjI0MzM5LC0xNTcuODIwMjcgaCA1Ljc3NTIgbCA0LjgyOTU2LC0yMy4yMDIxMiBoIC01Ljc3NTIgeiIKICAgICAgICAgICAgICAgc3R5bGU9ImZvbnQtc3R5bGU6aXRhbGljO2ZvbnQtd2VpZ2h0OjgwMDtmb250LWZhbWlseTpNZXRyb3BvbGlzOy1pbmtzY2FwZS1mb250LXNwZWNpZmljYXRpb246J01ldHJvcG9saXMgVWx0cmEtQm9sZCBJdGFsaWMnO2ZpbGw6I2ZmZmZmZiIKICAgICAgICAgICAgICAgaWQ9InBhdGgxNjY1MyIgLz4KICAgICAgICAgICAgPHBhdGgKICAgICAgICAgICAgICAgZD0ibSAtMTMxLjkzNTY5LC0xODEuMDIyMzkgLTkuMDE3NDIsMTQuOTYxNDkgLTIuODM2OTQsLTE0Ljk2MTQ5IGggLTYuMzgzMTEgbCA0LjMyMjk1LDIzLjA2NzAzIC0wLjA2NzUsMC4xMzUwOSBoIDYuNTg1NzUgbCAxNC4wMTU4NCwtMjMuMjAyMTIgeiIKICAgICAgICAgICAgICAgc3R5bGU9ImZvbnQtc3R5bGU6aXRhbGljO2ZvbnQtd2VpZ2h0OjgwMDtmb250LWZhbWlseTpNZXRyb3BvbGlzOy1pbmtzY2FwZS1mb250LXNwZWNpZmljYXRpb246J01ldHJvcG9saXMgVWx0cmEtQm9sZCBJdGFsaWMnO2ZpbGw6I2ZmZmZmZiIKICAgICAgICAgICAgICAgaWQ9InBhdGgxNjY1NSIgLz4KICAgICAgICAgICAgPHBhdGgKICAgICAgICAgICAgICAgZD0ibSAtMTI3LjY0NjUxLC0xNTcuODIwMjcgaCA1Ljc3NTIgbCA0LjgyOTU2LC0yMy4yMDIxMiBoIC01Ljc3NTIgeiIKICAgICAgICAgICAgICAgc3R5bGU9ImZvbnQtc3R5bGU6aXRhbGljO2ZvbnQtd2VpZ2h0OjgwMDtmb250LWZhbWlseTpNZXRyb3BvbGlzOy1pbmtzY2FwZS1mb250LXNwZWNpZmljYXRpb246J01ldHJvcG9saXMgVWx0cmEtQm9sZCBJdGFsaWMnO2ZpbGw6I2ZmZmZmZiIKICAgICAgICAgICAgICAgaWQ9InBhdGgxNjY1NyIgLz4KICAgICAgICAgICAgPHBhdGgKICAgICAgICAgICAgICAgZD0ibSAtMTA2LjYwNTgzLC0xNTcuNDE0OTkgYyA2LjE4MDQ3LDAgMTEuMzEzOTg1LC00LjE1NDA5IDEyLjU5NzM2MiwtMTAuMzM0NTcgbCAyLjc2OTM5NSwtMTMuMjcyODMgaCAtNS43NzUyMDEgbCAtMi42MDA1MjgsMTIuNTI5ODIgYyAtMC42NzU0NTgsMy4yNzU5OSAtMy40NDQ4NTgsNS44NDI3NSAtNi41NTE5NzgsNS44NDI3NSAtMi43Njk0LDAgLTQuMjIxNjQsLTIuMDkzOTMgLTMuNTc5OTUsLTUuMzY5OTIgbCAyLjcwMTg1LC0xMy4wMDI2NSBoIC01Ljc0MTQzIGwgLTIuNjY4MDgsMTIuODAwMDEgYyAtMS4yODMzOCw2LjIxNDI1IDIuMzY0MTIsMTAuODA3MzkgOC44NDg1NiwxMC44MDczOSB6IgogICAgICAgICAgICAgICBzdHlsZT0iZm9udC1zdHlsZTppdGFsaWM7Zm9udC13ZWlnaHQ6ODAwO2ZvbnQtZmFtaWx5Ok1ldHJvcG9saXM7LWlua3NjYXBlLWZvbnQtc3BlY2lmaWNhdGlvbjonTWV0cm9wb2xpcyBVbHRyYS1Cb2xkIEl0YWxpYyc7ZmlsbDojZmZmZmZmIgogICAgICAgICAgICAgICBpZD0icGF0aDE2NjU5IiAvPgogICAgICAgICAgICA8cGF0aAogICAgICAgICAgICAgICBkPSJtIC05MS43Nzk0NjMsLTE1Ny44MjAyNyBoIDUuNzc1MiBsIDIuODcwNzE0LC0xMy40NDE2OSA0LjIyMTYzOCwxMi4wOTA3NyA5LjE1MjUxLC0xMi4wOTA3NyAtMi44NzA3MTMsMTMuNDQxNjkgaCA1Ljc3NTIgbCA0LjgyOTU1NCwtMjMuMjAyMTIgaCAtNS44NDI3NDcgbCAtOS4yNTM4MywxMi4wOTA3NyAtNC4xMjAzMTgsLTEyLjA5MDc3IGggLTUuNzA3NjU1IHoiCiAgICAgICAgICAgICAgIHN0eWxlPSJmb250LXN0eWxlOml0YWxpYztmb250LXdlaWdodDo4MDA7Zm9udC1mYW1pbHk6TWV0cm9wb2xpczstaW5rc2NhcGUtZm9udC1zcGVjaWZpY2F0aW9uOidNZXRyb3BvbGlzIFVsdHJhLUJvbGQgSXRhbGljJztmaWxsOiNmZmZmZmYiCiAgICAgICAgICAgICAgIGlkPSJwYXRoMTY2NjEiIC8+CiAgICAgICAgICA8L2c+CiAgICAgICAgICA8ZwogICAgICAgICAgICAgYXJpYS1sYWJlbD0iVCIKICAgICAgICAgICAgIGlkPSJ0ZXh0MjQ4OCIKICAgICAgICAgICAgIHN0eWxlPSJmb250LXNpemU6MzMuNzczMXB4O2xpbmUtaGVpZ2h0OjEuMjU7bGV0dGVyLXNwYWNpbmc6MHB4O3dvcmQtc3BhY2luZzowcHg7ZmlsbDojZmYxZTAwO3N0cm9rZS13aWR0aDowLjg0NDMyOCI+CiAgICAgICAgICAgIDxwYXRoCiAgICAgICAgICAgICAgIGQ9Im0gLTIwMy4wODgzMSwtMTU3LjgyMDI3IGggNS43NzUyIGwgMy43NDg4MSwtMTguMDM0ODMgaCA3LjA1ODU4IGwgMS4wNDY5NywtNS4xNjcyOSBoIC0xOS44NTg1OSBsIC0xLjA0Njk2LDUuMTY3MjkgaCA3LjAyNDggeiIKICAgICAgICAgICAgICAgc3R5bGU9ImZvbnQtc3R5bGU6aXRhbGljO2ZvbnQtd2VpZ2h0OjgwMDtmb250LWZhbWlseTpNZXRyb3BvbGlzOy1pbmtzY2FwZS1mb250LXNwZWNpZmljYXRpb246J01ldHJvcG9saXMgVWx0cmEtQm9sZCBJdGFsaWMnIgogICAgICAgICAgICAgICBpZD0icGF0aDE2NjY0IiAvPgogICAgICAgICAgPC9nPgogICAgICAgIDwvZz4KICAgICAgPC9nPgogICAgPC9nPgogIDwvZz4KPC9zdmc+Cg==';
+$logo_b64 = 'PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0iVVRGLTgiIHN0YW5kYWxvbmU9Im5vIj8+CjwhLS0gQ3JlYXRlZCB3aXRoIElua3NjYXBlIChodHRwOi8vd3d3Lmlua3NjYXBlLm9yZy8pIC0tPgoKPHN2ZwogICB3aWR0aD0iOTUuNjEyMTM3bW0iCiAgIGhlaWdodD0iNDEuMjIyNjE4bW0iCiAgIHZpZXdCb3g9IjAgMCA5NS42MTIxMzcgNDEuMjIyNjE4IgogICB2ZXJzaW9uPSIxLjEiCiAgIGlkPSJzdmcxNjA3NCIKICAgaW5rc2NhcGU6dmVyc2lvbj0iMS4yLjIgKGIwYTg0ODY1NDEsIDIwMjItMTItMDEpIgogICBzb2RpcG9kaTpkb2NuYW1lPSJsb2dvIHRyaXZpdW0gY2VudGVyLnN2ZyIKICAgeG1sbnM6aW5rc2NhcGU9Imh0dHA6Ly93d3cuaW5rc2NhcGUub3JnL25hbWVzcGFjZXMvaW5rc2NhcGUiCiAgIHhtbG5zOnNvZGlwb2RpPSJodHRwOi8vc29kaXBvZGkuc291cmNlZm9yZ2UubmV0L0RURC9zb2RpcG9kaS0wLmR0ZCIKICAgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIgogICB4bWxuczpzdmc9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KICA8c29kaXBvZGk6bmFtZWR2aWV3CiAgICAgaWQ9Im5hbWVkdmlldzE2MDc2IgogICAgIHBhZ2Vjb2xvcj0iI2ZmZmZmZiIKICAgICBib3JkZXJjb2xvcj0iIzAwMDAwMCIKICAgICBib3JkZXJvcGFjaXR5PSIwLjI1IgogICAgIGlua3NjYXBlOnNob3dwYWdlc2hhZG93PSIyIgogICAgIGlua3NjYXBlOnBhZ2VvcGFjaXR5PSIwLjAiCiAgICAgaW5rc2NhcGU6cGFnZWNoZWNrZXJib2FyZD0iMCIKICAgICBpbmtzY2FwZTpkZXNrY29sb3I9IiNkMWQxZDEiCiAgICAgaW5rc2NhcGU6ZG9jdW1lbnQtdW5pdHM9Im1tIgogICAgIHNob3dncmlkPSJmYWxzZSIKICAgICBpbmtzY2FwZTp6b29tPSIyLjIwMjkyNTciCiAgICAgaW5rc2NhcGU6Y3g9IjE5Ny4wMTA3MyIKICAgICBpbmtzY2FwZTpjeT0iMTM5LjU4NzA5IgogICAgIGlua3NjYXBlOndpbmRvdy13aWR0aD0iMTg1NCIKICAgICBpbmtzY2FwZTp3aW5kb3ctaGVpZ2h0PSIxMDExIgogICAgIGlua3NjYXBlOndpbmRvdy14PSI2NiIKICAgICBpbmtzY2FwZTp3aW5kb3cteT0iMzIiCiAgICAgaW5rc2NhcGU6d2luZG93LW1heGltaXplZD0iMSIKICAgICBpbmtzY2FwZTpjdXJyZW50LWxheWVyPSJsYXllcjEiIC8+CiAgPGRlZnMKICAgICBpZD0iZGVmczE2MDcxIiAvPgogIDxnCiAgICAgaW5rc2NhcGU6bGFiZWw9IkxheWVyIDEiCiAgICAgaW5rc2NhcGU6Z3JvdXBtb2RlPSJsYXllciIKICAgICBpZD0ibGF5ZXIxIgogICAgIHRyYW5zZm9ybT0idHJhbnNsYXRlKC05OS4yODMwMDUsLTEwMi4xMzkyOCkiPgogICAgPHBhdGgKICAgICAgIGlkPSJyZWN0MjQ3NiIKICAgICAgIHN0eWxlPSJmaWxsOiMxYzFjMWM7c3Ryb2tlLXdpZHRoOjAuNjE5Nzg2O3N0cm9rZS1saW5lY2FwOnJvdW5kIgogICAgICAgZD0iTSA5OS4yODMwMDUsMTAyLjEzOTI4IEggMTk0Ljg5NTE0IFYgMTQzLjM2MTkgSCA5OS4yODMwMDU...'; 
 ?>
 <!DOCTYPE html>
 <html lang="es">
 <head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Presupuesto #<?= str_pad($id,5,'0',STR_PAD_LEFT) ?> — Trivium Center</title>
-<script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
-<style>
-* { box-sizing: border-box; margin: 0; padding: 0; }
-body { font-family: 'Helvetica Neue', Arial, sans-serif; color: #1a1a1a; font-size: 14px; background: #f0f0f0; }
-.page { max-width: 820px; margin: 0 auto; background: #fff; }
+    <meta charset="utf-8">
+    <title>Presupuesto #<?= str_pad($id, 5, '0', STR_PAD_LEFT) ?></title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
+    <style>
+        :root {
+            --brand-primary: #111827;
+            --brand-accent: #E11D48;
+            --text-main: #1F2937;
+            --text-muted: #6B7280;
+            --bg-light: #F9FAFB;
+            --border: #E5E7EB;
+        }
 
-/* Header bar */
-.header-bar {
-  background: #1c1c1c;
-  padding: 24px 36px;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
-.header-bar img { height: 38px; }
-.doc-info { text-align: right; }
-.doc-info .doc-label { font-size: 11px; color: #888; letter-spacing: .08em; text-transform: uppercase; }
-.doc-info .doc-num { font-size: 22px; font-weight: 700; color: #fff; letter-spacing: .02em; }
-.doc-info .doc-sub { font-size: 12px; color: #aaa; margin-top: 2px; }
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body { 
+            font-family: 'Inter', sans-serif; 
+            color: var(--text-main); 
+            background: #E5E7EB; 
+            padding: 40px 0;
+            -webkit-font-smoothing: antialiased;
+        }
 
-/* Red accent bar */
-.accent-bar { height: 4px; background: #ff1e00; }
+        .output-container {
+            width: 800px;
+            margin: 0 auto;
+            background: #fff;
+            box-shadow: 0 20px 50px rgba(0,0,0,0.1);
+            position: relative;
+            min-height: 1000px;
+            display: flex;
+            flex-direction: column;
+        }
 
-/* Body */
-.body { padding: 32px 36px; }
+        /* Decorative strip at the top */
+        .top-strip { height: 6px; background: var(--brand-accent); width: 100%; }
 
-.meta-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; margin-bottom: 32px; }
-.meta-block .label { font-size: 10px; text-transform: uppercase; letter-spacing: .07em; color: #999; margin-bottom: 6px; }
-.meta-block .value { font-size: 14px; color: #1a1a1a; line-height: 1.5; }
-.meta-block .value strong { font-size: 16px; font-weight: 700; display: block; }
-.meta-block.right { text-align: right; }
+        /* Header section */
+        .header {
+            padding: 60px 60px 40px;
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+        }
 
-/* Table */
-table { width: 100%; border-collapse: collapse; margin-bottom: 4px; }
-thead tr { background: #1c1c1c; }
-thead th {
-  color: #fff; padding: 10px 14px; font-size: 11px; font-weight: 600;
-  text-transform: uppercase; letter-spacing: .06em; text-align: left;
-}
-thead th.r { text-align: right; }
-tbody tr { border-bottom: 1px solid #f0f0f0; }
-tbody tr:last-child { border-bottom: none; }
-tbody td { padding: 11px 14px; font-size: 13px; vertical-align: top; color: #333; }
-tbody td.r { text-align: right; white-space: nowrap; }
-tbody tr:nth-child(even) { background: #fafafa; }
+        .logo-box img { height: 50px; width: auto; }
+        
+        .doc-info { text-align: right; }
+        .doc-label { 
+            font-size: 11px; font-weight: 800; text-transform: uppercase; 
+            letter-spacing: 0.15em; color: var(--brand-accent); margin-bottom: 4px; 
+        }
+        .doc-number { font-size: 32px; font-weight: 800; color: var(--brand-primary); line-height: 1; }
+        .doc-date { font-size: 13px; color: var(--text-muted); margin-top: 8px; font-weight: 500; }
 
-/* Totals */
-.totals-wrap { display: flex; justify-content: flex-end; margin-top: 16px; margin-bottom: 8px; }
-.totals-box { min-width: 220px; }
-.totals-row { display: flex; justify-content: space-between; padding: 5px 0; font-size: 13px; color: #555; border-bottom: 1px solid #f0f0f0; }
-.totals-row:last-child { border-bottom: none; border-top: 2px solid #1c1c1c; padding-top: 10px; margin-top: 4px; }
-.totals-row.total-final .lbl { font-size: 14px; font-weight: 700; color: #1a1a1a; }
-.totals-row.total-final .amt { font-size: 20px; font-weight: 800; color: #ff1e00; }
+        /* Main Content */
+        .main-content { padding: 0 60px; flex: 1; }
 
-/* Notes */
-.notes { margin-top: 24px; border-left: 3px solid #ff1e00; padding: 10px 16px; background: #fafafa; border-radius: 0 6px 6px 0; }
-.notes .label { font-size: 10px; text-transform: uppercase; letter-spacing: .07em; color: #999; margin-bottom: 5px; }
-.notes p { font-size: 13px; color: #444; line-height: 1.5; white-space: pre-wrap; }
+        .client-info-grid {
+            display: grid;
+            grid-template-columns: 1.2fr 0.8fr;
+            gap: 40px;
+            margin-bottom: 50px;
+            padding: 30px 0;
+            border-top: 1px solid var(--border);
+            border-bottom: 1px solid var(--border);
+        }
 
-/* Footer */
-.footer { margin-top: 40px; padding: 16px 36px; background: #1c1c1c; display: flex; justify-content: space-between; align-items: center; }
-.footer p { font-size: 11px; color: #888; }
-.footer .validity { font-size: 11px; color: #aaa; text-align: right; }
+        .info-block-label { font-size: 10px; font-weight: 800; text-transform: uppercase; color: var(--text-muted); margin-bottom: 12px; letter-spacing: 0.05em; }
+        
+        .client-card strong { font-size: 20px; font-weight: 800; color: var(--brand-primary); display: block; margin-bottom: 6px; }
+        .client-card p { font-size: 14px; color: #4B5563; margin-bottom: 3px; }
 
-/* Botones de acción (solo pantalla) */
-.actions { position: fixed; top: 16px; right: 16px; display: flex; gap: 8px; z-index: 100; }
-.btn-action {
-  border: none; padding: 9px 18px; border-radius: 8px; font-size: 13px;
-  font-weight: 600; cursor: pointer;
-}
-.btn-print { background: #1c1c1c; color: #fff; }
-.btn-img   { background: #ff1e00; color: #fff; }
+        .meta-card { background: var(--bg-light); padding: 20px; border-radius: 12px; }
+        .meta-item { display: flex; justify-content: space-between; margin-bottom: 8px; font-size: 13px; }
+        .meta-item:last-child { margin-bottom: 0; }
+        .meta-item .lbl { color: var(--text-muted); }
+        .meta-item .val { font-weight: 700; color: var(--brand-primary); }
 
-@media print {
-  body { background: #fff; }
-  .actions { display: none; }
-  .page { box-shadow: none; }
-}
-</style>
+        /* Table Styling */
+        table { width: 100%; border-collapse: collapse; margin-bottom: 40px; }
+        th { 
+            text-align: left; padding: 15px 0; font-size: 11px; font-weight: 800; 
+            text-transform: uppercase; color: var(--text-muted); border-bottom: 2px solid var(--brand-primary);
+        }
+        td { padding: 20px 0; border-bottom: 1px solid var(--border); vertical-align: top; }
+        
+        .item-name { font-size: 14px; font-weight: 700; color: var(--brand-primary); margin-bottom: 4px; }
+        .item-sub { font-size: 11px; color: var(--text-muted); font-weight: 500; }
+        
+        .col-qty { width: 80px; text-align: center; }
+        .col-price { width: 120px; text-align: right; }
+        .col-total { width: 140px; text-align: right; }
+
+        .qty-val { font-weight: 600; color: var(--brand-primary); }
+        .price-val { font-weight: 500; color: var(--text-muted); }
+        .total-val { font-weight: 700; color: var(--brand-primary); }
+
+        /* Summary Section */
+        .summary-wrapper { display: flex; justify-content: flex-end; margin-bottom: 60px; }
+        .summary-box { width: 300px; }
+        .summary-row { display: flex; justify-content: space-between; padding: 10px 0; font-size: 14px; color: var(--text-muted); }
+        .summary-row.grand-total { 
+            margin-top: 15px; padding: 20px 0; border-top: 2px solid var(--brand-primary); 
+            color: var(--brand-primary); 
+        }
+        .grand-total .lbl { font-weight: 800; font-size: 16px; text-transform: uppercase; }
+        .grand-total .amt { font-size: 28px; font-weight: 900; color: var(--brand-accent); }
+
+        /* Notes and Terms */
+        .footer-notes { margin-top: 40px; padding: 30px; background: var(--bg-light); border-radius: 16px; }
+        .notes-title { font-size: 11px; font-weight: 800; text-transform: uppercase; color: var(--text-muted); margin-bottom: 10px; }
+        .notes-content { font-size: 13px; line-height: 1.6; color: #4B5563; white-space: pre-wrap; }
+
+        /* Footer */
+        .page-footer { 
+            padding: 60px; background: var(--brand-primary); color: #fff; 
+            display: flex; justify-content: space-between; align-items: center;
+        }
+        .footer-brand { font-weight: 800; font-size: 16px; letter-spacing: -0.02em; }
+        .footer-info { text-align: right; font-size: 11px; opacity: 0.6; line-height: 1.5; }
+
+        /* Action Buttons */
+        .action-bar { position: fixed; bottom: 30px; right: 30px; display: flex; gap: 15px; z-index: 1000; }
+        .btn { 
+            padding: 14px 28px; border-radius: 12px; font-size: 14px; font-weight: 700; 
+            cursor: pointer; border: none; transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            display: flex; align-items: center; gap: 10px; box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+        }
+        .btn-print { background: #fff; color: var(--brand-primary); }
+        .btn-img { background: var(--brand-accent); color: #fff; }
+        .btn:hover { transform: translateY(-4px); box-shadow: 0 15px 30px rgba(0,0,0,0.3); }
+
+        @media print {
+            body { background: #fff; padding: 0; }
+            .action-bar { display: none; }
+            .output-container { box-shadow: none; margin: 0; width: 100%; }
+        }
+    </style>
 </head>
 <body>
 
-<div class="actions">
-  <button class="btn-action btn-print" onclick="window.print()">🖨 Imprimir / PDF</button>
-  <button class="btn-action btn-img"   onclick="descargarImagen()">↓ Imagen</button>
-</div>
-
-<div class="page" id="pagina-presupuesto">
-
-  <div class="header-bar">
-    <img src="data:image/svg+xml;base64,<?= $logo_b64 ?>" alt="Trivium Center">
-    <div class="doc-info">
-      <div class="doc-label">Presupuesto</div>
-      <div class="doc-num">#<?= str_pad($id,5,'0',STR_PAD_LEFT) ?></div>
-      <div class="doc-sub">Fecha: <?= fecha($p['fecha']) ?></div>
-    </div>
-  </div>
-  <div class="accent-bar"></div>
-
-  <div class="body">
-
-    <div class="meta-grid">
-      <div class="meta-block">
-        <div class="label">Cliente</div>
-        <div class="value">
-          <strong><?= esc($p['empresa'] ?: $p['cliente_nombre'] ?: 'Sin asignar') ?></strong>
-          <?php if ($p['empresa'] && $p['cliente_nombre']): ?><?= esc($p['cliente_nombre']) ?><br><?php endif; ?>
-          <?php if ($p['email']): ?><?= esc($p['email']) ?><br><?php endif; ?>
-          <?php if ($p['telefono']): ?><?= esc($p['telefono']) ?><br><?php endif; ?>
-          <?php if ($p['ciudad']): ?><?= esc($p['ciudad']) ?><?= $p['provincia'] ? ', '.esc($p['provincia']) : '' ?><?php endif; ?>
-        </div>
-      </div>
-      <div class="meta-block right">
-        <div class="label">Validez</div>
-        <div class="value">Hasta el <strong><?= $vence ?></strong></div>
-        <div class="label" style="margin-top:14px">Condiciones</div>
-        <div class="value">Precios en pesos argentinos</div>
-      </div>
+    <div class="action-bar">
+        <button class="btn btn-print" onclick="window.print()">
+            <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"/></svg>
+            Imprimir / PDF
+        </button>
+        <button class="btn btn-img" onclick="exportImage()">
+            <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+            Descargar Imagen
+        </button>
     </div>
 
-    <table>
-      <thead>
-        <tr>
-          <th>Descripción</th>
-          <th class="r">Cant.</th>
-          <th class="r">P. Unit. s/IVA</th>
-          <th class="r">IVA</th>
-          <th class="r">Subtotal</th>
-        </tr>
-      </thead>
-      <tbody>
-        <?php foreach ($items as $it):
-          $base    = (float)$it['cantidad'] * (float)$it['precio_unitario'];
-          $iva_val = (float)($it['iva'] ?? 0);
-          $sub     = $base * (1 + $iva_val / 100);
-        ?>
-        <tr>
-          <td><?= esc($it['descripcion']) ?></td>
-          <td class="r"><?= number_format((float)$it['cantidad'], 2, ',', '.') ?></td>
-          <td class="r"><?= money($it['precio_unitario']) ?></td>
-          <td class="r"><?= $iva_val > 0 ? $iva_val.'%' : '—' ?></td>
-          <td class="r"><?= money($sub) ?></td>
-        </tr>
-        <?php endforeach; ?>
-      </tbody>
-    </table>
+    <div class="output-container" id="capture-area">
+        <div class="top-strip"></div>
+        
+        <header class="header">
+            <div class="logo-box">
+                <img src="data:image/svg+xml;base64,<?= $logo_b64 ?>" alt="Trivium Center">
+            </div>
+            <div class="doc-info">
+                <p class="doc-label">Presupuesto Comercial</p>
+                <h1 class="doc-number">#<?= str_pad($id, 5, '0', STR_PAD_LEFT) ?></h1>
+                <p class="doc-date">Fecha de emisión: <?= fecha($p['fecha']) ?></p>
+            </div>
+        </header>
 
-    <div class="totals-wrap">
-      <div class="totals-box">
-        <?php if ($hay_iva): ?>
-        <div class="totals-row">
-          <span class="lbl">Subtotal s/IVA</span>
-          <span class="amt"><?= money($subtotal_sin_iva) ?></span>
-        </div>
-        <div class="totals-row">
-          <span class="lbl">IVA</span>
-          <span class="amt"><?= money($iva_total) ?></span>
-        </div>
-        <?php endif; ?>
-        <div class="totals-row total-final">
-          <span class="lbl">Total</span>
-          <span class="amt"><?= money($p['total']) ?></span>
-        </div>
-      </div>
+        <main class="main-content">
+            <div class="client-info-grid">
+                <div class="client-card">
+                    <p class="info-block-label">Preparado para</p>
+                    <strong><?= esc($p['empresa'] ?: $p['cliente_nombre'] ?: 'Consumidor Final') ?></strong>
+                    <?php if($p['empresa'] && $p['cliente_nombre']): ?><p><?= esc($p['cliente_nombre']) ?></p><?php endif; ?>
+                    <p><?= esc($p['direccion'] ?: '') ?> <?= esc($p['ciudad'] ?: '') ?></p>
+                    <p><?= esc($p['email'] ?: '') ?></p>
+                </div>
+                <div class="meta-card">
+                    <p class="info-block-label">Detalles de validez</p>
+                    <div class="meta-item">
+                        <span class="lbl">Vence el:</span>
+                        <span class="val"><?= $vence ?></span>
+                    </div>
+                    <div class="meta-item">
+                        <span class="lbl">Moneda:</span>
+                        <span class="val">Pesos Argentinos</span>
+                    </div>
+                    <div class="meta-item">
+                        <span class="lbl">Referencia:</span>
+                        <span class="val">Cotización Directa</span>
+                    </div>
+                </div>
+            </div>
+
+            <table>
+                <thead>
+                    <tr>
+                        <th>Descripción</th>
+                        <th class="col-qty">Cant.</th>
+                        <th class="col-price">Unitario</th>
+                        <th class="col-total">Subtotal</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <?php foreach ($items as $it): 
+                        $base = (float)$it['cantidad'] * (float)$it['precio_unitario'];
+                        $iva_p = (float)($it['iva'] ?? 0);
+                        $sub = $base * (1 + $iva_p / 100);
+                    ?>
+                    <tr>
+                        <td>
+                            <div class="item-name"><?= esc($it['descripcion']) ?></div>
+                            <div class="item-sub">Tasa de IVA: <?= $iva_p ?>%</div>
+                        </td>
+                        <td class="col-qty"><span class="qty-val"><?= (int)$it['cantidad'] ?></span></td>
+                        <td class="col-price"><span class="price-val"><?= money($it['precio_unitario']) ?></span></td>
+                        <td class="col-total"><span class="total-val"><?= money($sub) ?></span></td>
+                    </tr>
+                    <?php endforeach; ?>
+                </tbody>
+            </table>
+
+            <div class="summary-wrapper">
+                <div class="summary-box">
+                    <?php if ($hay_iva): ?>
+                    <div class="summary-row">
+                        <span>Subtotal (Neto)</span>
+                        <span><?= money($subtotal_sin_iva) ?></span>
+                    </div>
+                    <div class="summary-row">
+                        <span>Impuestos (IVA)</span>
+                        <span><?= money($iva_total) ?></span>
+                    </div>
+                    <?php endif; ?>
+                    <div class="summary-row grand-total">
+                        <span class="lbl">Total Final</span>
+                        <span class="amt"><?= money($p['total']) ?></span>
+                    </div>
+                </div>
+            </div>
+
+            <?php if ($p['notas']): ?>
+            <div class="footer-notes">
+                <p class="notes-title">Observaciones y Condiciones</p>
+                <div class="notes-content"><?= esc($p['notas']) ?></div>
+            </div>
+            <?php endif; ?>
+        </main>
+
+        <footer class="page-footer">
+            <div class="footer-brand">TRIVIUM CENTER</div>
+            <div class="footer-info">
+                Presupuesto generado mediante Trivium CRM.<br>
+                Válido para la República Argentina.
+            </div>
+        </footer>
     </div>
 
-    <?php if ($p['notas']): ?>
-    <div class="notes">
-      <div class="label">Observaciones</div>
-      <p><?= esc($p['notas']) ?></p>
-    </div>
-    <?php endif; ?>
-
-  </div>
-
-  <div class="footer">
-    <p>Trivium Center — Distribuidora de maquinaria para talleres automotrices<br>info@trivium.com.ar</p>
-    <p class="validity">Válido hasta el <?= $vence ?></p>
-  </div>
-
-</div>
-
-<script>
-async function descargarImagen() {
-  const el  = document.getElementById('pagina-presupuesto');
-  const canvas = await html2canvas(el, { scale: 2, useCORS: true, backgroundColor: '#ffffff' });
-  const link = document.createElement('a');
-  link.download = 'presupuesto-<?= str_pad($id,5,'0',STR_PAD_LEFT) ?>.png';
-  link.href = canvas.toDataURL('image/png');
-  link.click();
-}
-</script>
-
+    <script>
+    async function exportImage() {
+        const area = document.getElementById('capture-area');
+        const buttons = document.querySelector('.action-bar');
+        
+        buttons.style.display = 'none';
+        
+        try {
+            const canvas = await html2canvas(area, {
+                scale: 3, // High definition
+                useCORS: true,
+                backgroundColor: '#ffffff'
+            });
+            
+            const link = document.createElement('a');
+            link.download = 'Presupuesto_<?= str_pad($id, 5, "0", STR_PAD_LEFT) ?>_Trivium.png';
+            link.href = canvas.toDataURL('image/png');
+            link.click();
+        } catch (e) {
+            console.error(e);
+            alert('Error al generar la imagen.');
+        } finally {
+            buttons.style.display = 'flex';
+        }
+    }
+    </script>
 </body>
 </html>
