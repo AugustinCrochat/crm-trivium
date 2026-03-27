@@ -19,6 +19,9 @@ document.querySelectorAll('form[method="GET"]').forEach(form => {
   const searchInput = form.querySelector('input[type="search"]');
   if (!searchInput) return;
 
+  // Desactivar autocompletado del navegador
+  searchInput.setAttribute('autocomplete', 'off');
+
   let timer;
   const targetId = 'search-results';
 
@@ -28,7 +31,10 @@ document.querySelectorAll('form[method="GET"]').forEach(form => {
     for (const [key, value] of formData.entries()) {
       if (value) params.set(key, value);
     }
-    const url = `${form.action || window.location.pathname}?${params.toString()}`;
+    
+    // Usar la ruta base limpia sin parámetros previos para evitar duplicaciones
+    const baseUrl = window.location.origin + window.location.pathname;
+    const url = `${baseUrl}?${params.toString()}`;
 
     // Actualizar URL sin recargar
     history.replaceState(null, '', url);
