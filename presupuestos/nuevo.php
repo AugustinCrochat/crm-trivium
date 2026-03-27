@@ -6,6 +6,11 @@ $errors = [];
 $cliente_id_default = (int)($_GET['cliente_id'] ?? 0);
 $clientes = $pdo->query("SELECT id, nombre, empresa FROM clientes WHERE estado != 'guardado' ORDER BY nombre")->fetchAll();
 
+// Agregar columna iva si no existe todavía
+try {
+    $pdo->exec("ALTER TABLE presupuesto_items ADD COLUMN iva DECIMAL(5,2) NOT NULL DEFAULT 0 AFTER precio_unitario");
+} catch (PDOException $e) { /* ya existe */ }
+
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     verify_csrf();
     $cliente_id   = (int)($_POST['cliente_id'] ?? 0) ?: null;
