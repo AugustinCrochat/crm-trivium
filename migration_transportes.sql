@@ -317,5 +317,13 @@ CREATE TABLE IF NOT EXISTS envios_notas (
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
+-- 4b. Crear tabla para notas/todo del módulo de viajes (Transportes)
+CREATE TABLE IF NOT EXISTS viajes_notas (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    texto VARCHAR(500) NOT NULL,
+    completado TINYINT(1) NOT NULL DEFAULT 0,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
 -- 5. Reactivar chequeo de claves foráneas
 SET FOREIGN_KEY_CHECKS = 1;
