@@ -3,6 +3,17 @@
 -- Ejecutar en la base de datos u982106244_crm_trivium
 -- =====================================================
 
+-- 0. Desactivar chequeo de claves foráneas
+SET FOREIGN_KEY_CHECKS = 0;
+
+-- 0b. Limpiar referencias en envios para evitar IDs huérfanos
+UPDATE envios SET transporte_id = NULL WHERE transporte_id IS NOT NULL;
+
+-- 0c. Eliminar restricciones de clave foránea que apuntan a transportes
+-- (ajustar el nombre si es diferente en tu base)
+ALTER TABLE envios DROP FOREIGN KEY IF EXISTS envios_ibfk_2;
+ALTER TABLE envios DROP FOREIGN KEY IF EXISTS fk_envios_transporte;
+
 -- 1. Eliminar tabla auxiliar de ciudades (ya no se usa)
 DROP TABLE IF EXISTS transporte_ciudades;
 
@@ -305,3 +316,6 @@ CREATE TABLE IF NOT EXISTS envios_notas (
     completado TINYINT(1) NOT NULL DEFAULT 0,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- 5. Reactivar chequeo de claves foráneas
+SET FOREIGN_KEY_CHECKS = 1;

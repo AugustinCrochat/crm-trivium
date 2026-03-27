@@ -126,6 +126,19 @@ function clienteDisplay(array $v): string {
   </a>
 </div>
 
+<div id="search-results">
+<!-- Resumen ingresos -->
+<div class="grid grid-cols-2 gap-3 mb-4">
+  <div class="bg-white rounded-xl border border-gray-200 shadow-sm px-4 py-3">
+    <p class="text-xs text-gray-500 mb-0.5">Ingresos totales (ARS)</p>
+    <p class="text-lg font-bold text-gray-900"><?= money($totRow['total']) ?></p>
+  </div>
+  <div class="bg-white rounded-xl border border-gray-200 shadow-sm px-4 py-3">
+    <p class="text-xs text-gray-500 mb-0.5">Ventas</p>
+    <p class="text-lg font-bold text-gray-900"><?= (int)$totRow['cant'] ?></p>
+  </div>
+</div>
+
 <?php if (!$ventas): ?>
 <div class="bg-white rounded-xl border border-gray-200 p-12 text-center">
   <p class="text-gray-400 text-sm">No hay ventas para este período</p>
@@ -185,6 +198,7 @@ function clienteDisplay(array $v): string {
   <?php endforeach; ?>
 </div>
 <?php endif; ?>
+</div>
 
 <script>
 const BASE_URL   = '<?= BASE_URL ?>';

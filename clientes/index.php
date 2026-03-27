@@ -72,6 +72,7 @@ $tabs = [
 </div>
 
 <!-- Lista -->
+<div id="search-results">
 <?php if (!$clientes): ?>
 <div class="bg-white rounded-xl border border-gray-200 p-12 text-center">
   <p class="text-gray-400 text-sm">No hay clientes<?= $q ? " que coincidan con \"{$q}\"" : '' ?></p>
@@ -100,5 +101,6 @@ $tabs = [
   <?php endforeach; ?>
 </div>
 <?php endif; ?>
+</div>
 
 <?php require_once '../includes/footer.php'; ?>

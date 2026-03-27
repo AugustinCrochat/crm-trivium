@@ -54,6 +54,7 @@ $categorias = $pdo->query("SELECT DISTINCT categoria FROM productos WHERE catego
   </a>
 </div>
 
+<div id="search-results">
 <?php if (!$productos): ?>
 <div class="bg-white rounded-xl border border-gray-200 p-12 text-center">
   <p class="text-gray-400 text-sm">No hay productos<?= $q ? " para \"{$q}\"" : '' ?></p>
@@ -93,5 +94,6 @@ $categorias = $pdo->query("SELECT DISTINCT categoria FROM productos WHERE catego
   </div>
 </div>
 <?php endif; ?>
+</div>
 
 <?php require_once '../includes/footer.php'; ?>

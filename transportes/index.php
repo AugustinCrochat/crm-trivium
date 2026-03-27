@@ -56,6 +56,7 @@ $transportes_agrupados = array_values($transportes_agrupados);
   </a>
 </div>
 
+<div id="search-results">
 <?php if ($q): ?>
 <p class="text-sm text-gray-500 mb-3">Transportes que llegan a <strong><?= esc($q) ?></strong>: <?= count($transportes) ?></p>
 <?php endif; ?>
@@ -107,5 +108,6 @@ $transportes_agrupados = array_values($transportes_agrupados);
   <?php endforeach; ?>
 </div>
 <?php endif; ?>
+</div>
 
 <?php require_once '../includes/footer.php'; ?>
