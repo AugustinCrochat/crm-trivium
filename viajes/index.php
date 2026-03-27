@@ -87,7 +87,7 @@ $viajes_opts = $pdo->query("
       <div class="flex gap-2 mb-4 pt-2 border-t border-gray-50">
         <input type="text" id="new-viajes-todo-text" placeholder="Ej: Confirmar llegada de camión a depósito..."
           class="flex-1 text-sm border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:outline-none">
-        <button onclick="addViajesTodo()" class="bg-blue-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-blue-700">
+        <button type="button" onclick="addViajesTodo()" class="bg-blue-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-blue-700">
           Agregar
         </button>
       </div>
@@ -102,7 +102,7 @@ $viajes_opts = $pdo->query("
               <?= esc($n['texto']) ?>
             </span>
           </div>
-          <button onclick="deleteViajeNota(<?= $n['id'] ?>)" class="text-gray-300 hover:text-red-500 p-1">
+          <button type="button" onclick="deleteViajeNota(<?= $n['id'] ?>)" class="text-gray-300 hover:text-red-500 p-1">
             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
           </button>
         </div>
@@ -266,14 +266,16 @@ function toggleViajesTodo() {
 async function fetchViajesNotas() {
     try {
         const res = await fetch('<?= BASE_URL ?>/api/viajes_notas.php?action=list');
+        if (!res.ok) throw new Error('Network response was not ok');
         const json = await res.json();
-        renderViajesNotas(json.data);
-    } catch(e) {}
+        if (json.ok) renderViajesNotas(json.data);
+    } catch(e) { console.error('Error listing notes:', e); }
 }
 
 function renderViajesNotas(notas) {
     const list = document.getElementById('viajes-todo-list');
     const badge = document.getElementById('viajes-todo-badge');
+    if (!list || !badge) return;
     
     const pendientes = notas.filter(n => !parseInt(n.completado)).length;
     if (pendientes > 0) {
@@ -293,7 +295,7 @@ function renderViajesNotas(notas) {
             ${n.texto}
           </span>
         </div>
-        <button onclick="deleteViajeNota(${n.id})" class="text-gray-300 hover:text-red-500 p-1">
+        <button type="button" onclick="deleteViajeNota(${n.id})" class="text-gray-300 hover:text-red-500 p-1">
           <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
         </button>
       </div>
@@ -302,29 +304,38 @@ function renderViajesNotas(notas) {
 
 async function addViajesTodo() {
     const inp = document.getElementById('new-viajes-todo-text');
+    if (!inp) return;
     const texto = inp.value.trim();
     if (!texto) return;
     
     try {
         const res = await fetch('<?= BASE_URL ?>/api/viajes_notas.php', {
             method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ action: 'add', texto })
         });
-        if (res.ok) {
+        const json = await res.json();
+        if (json.ok) {
             inp.value = '';
             fetchViajesNotas();
+        } else {
+            alert('Error: ' + (json.error || 'No se pudo agregar la nota'));
         }
-    } catch(e) {}
+    } catch(e) {
+        console.error('Fetch error:', e);
+        alert('Error de conexión con el servidor');
+    }
 }
 
 async function toggleViajeNota(id) {
     try {
         await fetch('<?= BASE_URL ?>/api/viajes_notas.php', {
             method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ action: 'toggle', id })
         });
         fetchViajesNotas();
-    } catch(e) {}
+    } catch(e) { console.error('Error toggling note:', e); }
 }
 
 async function deleteViajeNota(id) {
@@ -332,10 +343,11 @@ async function deleteViajeNota(id) {
     try {
         await fetch('<?= BASE_URL ?>/api/viajes_notas.php', {
             method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ action: 'delete', id })
         });
         fetchViajesNotas();
-    } catch(e) {}
+    } catch(e) { console.error('Error deleting note:', e); }
 }
 </script>
 
