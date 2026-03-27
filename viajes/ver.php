@@ -65,6 +65,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         flash('Envío quitado del viaje.');
         redirect('/viajes/ver.php?id=' . $id);
     }
+
+    if (isset($_POST['eliminar_viaje'])) {
+        $pdo->prepare("UPDATE envios SET viaje_id=NULL WHERE viaje_id=?")->execute([$id]);
+        $pdo->prepare("DELETE FROM viajes WHERE id=?")->execute([$id]);
+        flash('Viaje eliminado.');
+        redirect('/viajes/');
+    }
 }
 ?>
 
@@ -111,7 +118,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     </div>
 
     <!-- Cambiar estado -->
-    <div class="mt-4 pt-4 border-t border-gray-100">
+    <div class="mt-4 pt-4 border-t border-gray-100 flex items-center justify-between gap-3 flex-wrap">
       <form method="POST" class="flex flex-wrap gap-2">
         <?= csrf_field() ?>
         <?php foreach (['planificado'=>'Planificado','en_curso'=>'En curso','completado'=>'Completado'] as $est => $lbl): ?>
@@ -121,6 +128,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
           <?= $lbl ?>
         </button>
         <?php endforeach; ?>
+      </form>
+      <form method="POST" onsubmit="return confirm('¿Eliminar este viaje? Los envíos asignados quedarán sin viaje.')">
+        <?= csrf_field() ?>
+        <button type="submit" name="eliminar_viaje" value="1"
+          class="px-3 py-1.5 rounded-lg text-sm border border-red-200 text-red-500 hover:bg-red-50 transition-colors">
+          Eliminar viaje
+        </button>
       </form>
     </div>
   </div>

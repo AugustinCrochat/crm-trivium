@@ -47,6 +47,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             redirect('/envios/ver.php?id=' . $id);
         }
     }
+
+    if (isset($_POST['eliminar_envio'])) {
+        $pdo->prepare("DELETE FROM envios WHERE id=?")->execute([$id]);
+        flash('Envío eliminado.');
+        redirect('/viajes/');
+    }
 }
 ?>
 
@@ -131,16 +137,25 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
   <!-- Cambiar estado -->
   <div class="bg-white rounded-xl border border-gray-200 shadow-sm p-4">
     <p class="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-3">Estado del envío</p>
-    <form method="POST" class="flex flex-wrap gap-2">
-      <?= csrf_field() ?>
-      <?php foreach (['pendiente'=>'Pendiente','en_transito'=>'En tránsito','entregado'=>'Entregado'] as $est => $lbl): ?>
-      <button type="submit" name="nuevo_estado" value="<?= $est ?>"
-        class="px-3 py-1.5 rounded-lg text-sm border transition-colors
-        <?= $e['estado'] === $est ? 'bg-blue-600 text-white border-blue-600' : 'bg-white border-gray-300 text-gray-600 hover:bg-gray-50' ?>">
-        <?= $lbl ?>
-      </button>
-      <?php endforeach; ?>
-    </form>
+    <div class="flex items-center justify-between gap-3 flex-wrap">
+      <form method="POST" class="flex flex-wrap gap-2">
+        <?= csrf_field() ?>
+        <?php foreach (['pendiente'=>'Pendiente','en_transito'=>'En tránsito','entregado'=>'Entregado'] as $est => $lbl): ?>
+        <button type="submit" name="nuevo_estado" value="<?= $est ?>"
+          class="px-3 py-1.5 rounded-lg text-sm border transition-colors
+          <?= $e['estado'] === $est ? 'bg-blue-600 text-white border-blue-600' : 'bg-white border-gray-300 text-gray-600 hover:bg-gray-50' ?>">
+          <?= $lbl ?>
+        </button>
+        <?php endforeach; ?>
+      </form>
+      <form method="POST" onsubmit="return confirm('¿Eliminar este envío? Esta acción no se puede deshacer.')">
+        <?= csrf_field() ?>
+        <button type="submit" name="eliminar_envio" value="1"
+          class="px-3 py-1.5 rounded-lg text-sm border border-red-200 text-red-500 hover:bg-red-50 transition-colors">
+          Eliminar envío
+        </button>
+      </form>
+    </div>
   </div>
 
 </div>
