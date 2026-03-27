@@ -1,6 +1,14 @@
 <?php
 require_once '../config/db.php';
-$title = 'Logística';
+
+// Cargar notas/todo para la sección superior
+$viajes_notas = [];
+try {
+    $viajes_notas = $pdo->query("SELECT * FROM viajes_notas ORDER BY completado ASC, created_at DESC")->fetchAll();
+} catch (PDOException $ex) {}
+$pendientes_notas = count(array_filter($viajes_notas, fn($n) => !$n['completado']));
+
+$title = 'Viajes';
 require_once '../includes/header.php';
 
 // POST: asignar/desasignar envío a viaje
@@ -55,6 +63,53 @@ $viajes_opts = $pdo->query("
 ?>
 
 <div class="space-y-6">
+
+  <!-- ══ Sección: Cosas a tener en cuenta (Viajes) ══ -->
+  <div class="bg-white rounded-xl border border-gray-200 shadow-sm mb-2" id="todo-viajes-section">
+    <button onclick="toggleViajesTodo()" type="button"
+      class="w-full flex items-center justify-between px-4 py-3 text-left hover:bg-gray-50 transition-colors rounded-xl">
+      <div class="flex items-center gap-2">
+        <svg class="w-5 h-5 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+            d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"/>
+        </svg>
+        <span class="font-bold text-gray-700">Puntos importantes / Recordatorios</span>
+        <span id="viajes-todo-badge" class="<?= $pendientes_notas ? '' : 'hidden' ?> bg-blue-100 text-blue-700 text-[10px] font-bold px-2 py-0.5 rounded-full uppercase tracking-wider">
+          <?= $pendientes_notas ?> Pendientes
+        </span>
+      </div>
+      <svg id="todo-viajes-arrow" class="w-4 h-4 text-gray-400 transform transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+      </svg>
+    </button>
+    
+    <div id="todo-viajes-content" class="hidden px-4 pb-4">
+      <div class="flex gap-2 mb-4 pt-2 border-t border-gray-50">
+        <input type="text" id="new-viajes-todo-text" placeholder="Ej: Confirmar llegada de camión a depósito..."
+          class="flex-1 text-sm border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:outline-none">
+        <button onclick="addViajesTodo()" class="bg-blue-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-blue-700">
+          Agregar
+        </button>
+      </div>
+      <div id="viajes-todo-list" class="space-y-2">
+        <?php foreach ($viajes_notas as $n): ?>
+        <div id="viaje-nota-<?= $n['id'] ?>" class="flex items-center justify-between gap-3 p-2 rounded-lg hover:bg-gray-50 group">
+          <div class="flex items-center gap-3 flex-1 min-w-0">
+            <input type="checkbox" <?= $n['completado'] ? 'checked' : '' ?>
+              onchange="toggleViajeNota(<?= $n['id'] ?>)"
+              class="w-4 h-4 text-blue-600 rounded focus:ring-blue-500">
+            <span class="text-sm <?= $n['completado'] ? 'line-through text-gray-400' : 'text-gray-700' ?> truncate">
+              <?= esc($n['texto']) ?>
+            </span>
+          </div>
+          <button onclick="deleteViajeNota(<?= $n['id'] ?>)" class="text-gray-300 hover:text-red-500 p-1">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+          </button>
+        </div>
+        <?php endforeach; ?>
+      </div>
+    </div>
+  </div>
 
   <!-- ── VIAJES ─────────────────────────────────────────────────── -->
   <div>
@@ -199,5 +254,89 @@ $viajes_opts = $pdo->query("
   </div>
 
 </div>
+
+<script>
+function toggleViajesTodo() {
+    const content = document.getElementById('todo-viajes-content');
+    const arrow   = document.getElementById('todo-viajes-arrow');
+    content.classList.toggle('hidden');
+    arrow.classList.toggle('rotate-180');
+}
+
+async function fetchViajesNotas() {
+    try {
+        const res = await fetch('<?= BASE_URL ?>/api/viajes_notas.php?action=list');
+        const json = await res.json();
+        renderViajesNotas(json.data);
+    } catch(e) {}
+}
+
+function renderViajesNotas(notas) {
+    const list = document.getElementById('viajes-todo-list');
+    const badge = document.getElementById('viajes-todo-badge');
+    
+    const pendientes = notas.filter(n => !parseInt(n.completado)).length;
+    if (pendientes > 0) {
+        badge.textContent = `${pendientes} Pendientes`;
+        badge.classList.remove('hidden');
+    } else {
+        badge.classList.add('hidden');
+    }
+
+    list.innerHTML = notas.map(n => `
+      <div id="viaje-nota-${n.id}" class="flex items-center justify-between gap-3 p-2 rounded-lg hover:bg-gray-50 group">
+        <div class="flex items-center gap-3 flex-1 min-w-0">
+          <input type="checkbox" ${parseInt(n.completado) ? 'checked' : ''}
+            onchange="toggleViajeNota(${n.id})"
+            class="w-4 h-4 text-blue-600 rounded focus:ring-blue-500">
+          <span class="text-sm ${parseInt(n.completado) ? 'line-through text-gray-400' : 'text-gray-700'} truncate">
+            ${n.texto}
+          </span>
+        </div>
+        <button onclick="deleteViajeNota(${n.id})" class="text-gray-300 hover:text-red-500 p-1">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+        </button>
+      </div>
+    `).join('');
+}
+
+async function addViajesTodo() {
+    const inp = document.getElementById('new-viajes-todo-text');
+    const texto = inp.value.trim();
+    if (!texto) return;
+    
+    try {
+        const res = await fetch('<?= BASE_URL ?>/api/viajes_notas.php', {
+            method: 'POST',
+            body: JSON.stringify({ action: 'add', texto })
+        });
+        if (res.ok) {
+            inp.value = '';
+            fetchViajesNotas();
+        }
+    } catch(e) {}
+}
+
+async function toggleViajeNota(id) {
+    try {
+        await fetch('<?= BASE_URL ?>/api/viajes_notas.php', {
+            method: 'POST',
+            body: JSON.stringify({ action: 'toggle', id })
+        });
+        fetchViajesNotas();
+    } catch(e) {}
+}
+
+async function deleteViajeNota(id) {
+    if (!confirm('¿Eliminar este recordatorio?')) return;
+    try {
+        await fetch('<?= BASE_URL ?>/api/viajes_notas.php', {
+            method: 'POST',
+            body: JSON.stringify({ action: 'delete', id })
+        });
+        fetchViajesNotas();
+    } catch(e) {}
+}
+</script>
 
 <?php require_once '../includes/footer.php'; ?>
