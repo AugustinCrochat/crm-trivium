@@ -6,7 +6,7 @@ $errors = [];
 $venta_id_default = (int)($_GET['venta_id'] ?? 0);
 
 $clientes    = $pdo->query("SELECT id, nombre, empresa, ciudad FROM clientes ORDER BY nombre")->fetchAll();
-$transportes = $pdo->query("SELECT id, nombre FROM transportes WHERE activo=1 ORDER BY nombre")->fetchAll();
+$transportes = $pdo->query("SELECT MIN(id) AS id, nombre FROM transportes WHERE activo=1 GROUP BY nombre ORDER BY nombre")->fetchAll();
 $viajes      = $pdo->query("SELECT id, fecha, descripcion FROM viajes WHERE estado != 'completado' ORDER BY fecha")->fetchAll();
 
 // Si viene con venta_id, preseleccionar cliente

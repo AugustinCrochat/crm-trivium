@@ -5,7 +5,7 @@ $id = (int)($_GET['id'] ?? 0);
 $stmt = $pdo->prepare("
     SELECT e.*,
            c.nombre AS cliente_nombre, c.empresa, c.ciudad, c.provincia, c.telefono,
-           t.nombre AS transporte_nombre, t.telefono AS transporte_tel, t.direccion AS transporte_dir,
+           t.nombre AS transporte_nombre, t.contacto AS transporte_contacto, t.direccion AS transporte_dir,
            vj.fecha AS viaje_fecha, vj.descripcion AS viaje_desc,
            v.id AS venta_id_ref
     FROM envios e
@@ -86,9 +86,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
   <div class="bg-white rounded-xl border border-gray-200 shadow-sm p-4">
     <p class="text-xs text-gray-400 mb-2 font-medium uppercase tracking-wide">Transporte</p>
     <p class="font-semibold text-gray-800"><?= esc($e['transporte_nombre']) ?></p>
-    <?php if ($e['transporte_tel']): ?>
+    <?php if ($e['transporte_contacto']): ?>
     <p class="text-sm text-gray-500 mt-0.5">
-      <a href="tel:<?= esc($e['transporte_tel']) ?>" class="hover:underline">☎ <?= esc($e['transporte_tel']) ?></a>
+      <?php if (str_starts_with($e['transporte_contacto'], 'http')): ?>
+      <a href="<?= esc($e['transporte_contacto']) ?>" target="_blank" class="text-blue-600 hover:underline">🔗 Contacto / Cotizador</a>
+      <?php else: ?>
+      <a href="tel:<?= esc($e['transporte_contacto']) ?>" class="hover:underline">☎ <?= esc($e['transporte_contacto']) ?></a>
+      <?php endif; ?>
     </p>
     <?php endif; ?>
     <?php if ($e['transporte_dir']): ?>

@@ -78,7 +78,7 @@ function _navSection(string $label): void
       <?php _navSection('Comercial'); ?>
 
       <?php _navLink('clientes', 'Clientes',
-        '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0"/>',
+        '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/>',
       $_activeModule); ?>
 
       <?php _navLink('presupuestos', 'Presupuestos',
@@ -95,10 +95,10 @@ function _navSection(string $label): void
         '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/>',
       $_activeModule); ?>
 
-      <?php _navSection('Logística'); ?>
+      <?php _navSection('Viajes'); ?>
 
-      <?php _navLink('logistica', 'Logística',
-        '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/>',
+      <?php _navLink('logistica', 'Viajes',
+        '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7"/>',
       $_activeModule, BASE_URL . '/viajes/'); ?>
 
       <?php _navLink('transportes', 'Transportes',

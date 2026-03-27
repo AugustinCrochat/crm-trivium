@@ -6,13 +6,12 @@ require_once '../includes/header.php';
 $q = trim($_GET['q'] ?? ''); // búsqueda por ciudad
 
 if ($q !== '') {
-    // Buscar transportes que sirven esa ciudad
+    // Buscar transportes que sirven esa ciudad directamente en la tabla
     $stmt = $pdo->prepare("
-        SELECT DISTINCT t.*
-        FROM transportes t
-        JOIN transporte_ciudades tc ON tc.transporte_id = t.id
-        WHERE t.activo = 1 AND tc.ciudad LIKE ?
-        ORDER BY t.nombre
+        SELECT *
+        FROM transportes
+        WHERE activo = 1 AND ciudad LIKE ?
+        ORDER BY nombre
     ");
     $stmt->execute(['%' . $q . '%']);
 } else {
@@ -20,15 +19,24 @@ if ($q !== '') {
 }
 $transportes = $stmt->fetchAll();
 
-// Para cada transporte, obtener sus ciudades
-$ciudades_por_transporte = [];
-if ($transportes) {
-    $ids  = implode(',', array_column($transportes, 'id'));
-    $rows = $pdo->query("SELECT * FROM transporte_ciudades WHERE transporte_id IN ($ids) ORDER BY ciudad")->fetchAll();
-    foreach ($rows as $r) {
-        $ciudades_por_transporte[$r['transporte_id']][] = $r['ciudad'];
+// Agrupar filas por nombre de transporte, sumando sus ciudades
+$transportes_agrupados = [];
+foreach ($transportes as $r) {
+    if (!isset($transportes_agrupados[$r['nombre']])) {
+        $transportes_agrupados[$r['nombre']] = [
+            'id' => $r['id'],
+            'nombre' => $r['nombre'],
+            'direccion' => $r['direccion'],
+            'telefono' => $r['contacto'] ?? ($r['telefono'] ?? ''),
+            'notas' => $r['notas'],
+            'ciudades' => []
+        ];
+    }
+    if (!empty($r['ciudad'])) {
+        $transportes_agrupados[$r['nombre']]['ciudades'][] = trim($r['ciudad']);
     }
 }
+$transportes_agrupados = array_values($transportes_agrupados);
 ?>
 
 <div class="flex items-center justify-between mb-4 gap-3">
@@ -60,23 +68,27 @@ if ($transportes) {
 </div>
 <?php else: ?>
 <div class="space-y-3">
-  <?php foreach ($transportes as $t): ?>
+  <?php foreach ($transportes_agrupados as $t): ?>
   <div class="bg-white rounded-xl border border-gray-200 shadow-sm p-4">
     <div class="flex items-start justify-between gap-3">
       <div class="min-w-0">
         <h3 class="font-semibold text-gray-900"><?= esc($t['nombre']) ?></h3>
         <?php if ($t['telefono']): ?>
         <p class="text-sm text-gray-500 mt-0.5">
+          <?php if (str_starts_with($t['telefono'], 'http')): ?>
+          <a href="<?= esc($t['telefono']) ?>" target="_blank" class="text-blue-600 hover:underline">🔗 Contacto / Cotizador</a>
+          <?php else: ?>
           <a href="tel:<?= esc($t['telefono']) ?>" class="hover:underline">☎ <?= esc($t['telefono']) ?></a>
+          <?php endif; ?>
         </p>
         <?php endif; ?>
         <?php if ($t['direccion']): ?>
         <p class="text-xs text-gray-400 mt-0.5"><?= esc($t['direccion']) ?></p>
         <?php endif; ?>
         <!-- Ciudades -->
-        <?php if (!empty($ciudades_por_transporte[$t['id']])): ?>
+        <?php if (!empty($t['ciudades'])): ?>
         <div class="mt-2 flex flex-wrap gap-1">
-          <?php foreach ($ciudades_por_transporte[$t['id']] as $ciudad): ?>
+          <?php foreach (array_unique($t['ciudades']) as $ciudad): ?>
           <span class="inline-block bg-gray-100 text-gray-600 text-xs px-2 py-0.5 rounded-full
             <?= $q && stripos($ciudad, $q) !== false ? 'bg-blue-100 text-blue-700' : '' ?>">
             <?= esc($ciudad) ?>

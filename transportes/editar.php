@@ -2,15 +2,26 @@
 require_once '../config/db.php';
 
 $id = (int)($_GET['id'] ?? 0);
-$t  = $pdo->prepare('SELECT * FROM transportes WHERE id = ?');
+// Buscar el transporte por id
+$t = $pdo->prepare('SELECT * FROM transportes WHERE id = ?');
 $t->execute([$id]);
 $t = $t->fetch();
 if (!$t) { flash('Transporte no encontrado.','error'); redirect('/transportes/'); }
 
-// Ciudades actuales
-$ciudades_actuales = $pdo->prepare('SELECT ciudad FROM transporte_ciudades WHERE transporte_id = ? ORDER BY ciudad');
-$ciudades_actuales->execute([$id]);
-$ciudades_actuales = $ciudades_actuales->fetchAll(PDO::FETCH_COLUMN);
+$nombre_transporte = $t['nombre'];
+
+// Obtener todas las filas para este transporte (por nombre)
+$todas = $pdo->prepare('SELECT * FROM transportes WHERE nombre = ? ORDER BY ciudad');
+$todas->execute([$nombre_transporte]);
+$filas = $todas->fetchAll();
+
+// Extraer ciudades actuales (ciudad, provincia)
+$ciudades_actuales = [];
+foreach ($filas as $f) {
+    if (!empty($f['ciudad'])) {
+        $ciudades_actuales[] = $f['ciudad'] . ($f['provincia'] ? ', ' . $f['provincia'] : '');
+    }
+}
 
 $title  = 'Editar transporte';
 $errors = [];
@@ -18,7 +29,7 @@ $errors = [];
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     verify_csrf();
     $nombre    = trim($_POST['nombre']    ?? '');
-    $telefono  = trim($_POST['telefono']  ?? '');
+    $contacto  = trim($_POST['contacto']  ?? '');
     $direccion = trim($_POST['direccion'] ?? '');
     $notas     = trim($_POST['notas']     ?? '');
     $activo    = isset($_POST['activo']) ? 1 : 0;
@@ -27,18 +38,26 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if ($nombre === '') $errors[] = 'El nombre es obligatorio.';
 
     if (!$errors) {
-        $pdo->prepare("UPDATE transportes SET nombre=?,telefono=?,direccion=?,notas=?,activo=? WHERE id=?")
-            ->execute([$nombre, $telefono, $direccion, $notas, $activo, $id]);
+        // Eliminar todas las filas del transporte antiguo (por nombre)
+        $pdo->prepare("DELETE FROM transportes WHERE nombre = ?")->execute([$nombre_transporte]);
 
-        // Reemplazar ciudades
-        $pdo->prepare("DELETE FROM transporte_ciudades WHERE transporte_id=?")->execute([$id]);
-        $ciudades = array_filter(
-            array_map('trim', preg_split('/[\n,]+/', $ciudades_raw)),
+        // Parsear líneas de ciudades
+        $lineas = array_filter(
+            array_map('trim', preg_split('/[\n]+/', $ciudades_raw)),
             fn($c) => $c !== ''
         );
-        $stmtC = $pdo->prepare("INSERT INTO transporte_ciudades (transporte_id, ciudad) VALUES (?,?)");
-        foreach (array_unique($ciudades) as $ciudad) {
-            $stmtC->execute([$id, $ciudad]);
+
+        if (empty($lineas)) {
+            $pdo->prepare("INSERT INTO transportes (nombre,direccion,contacto,ciudad,provincia,notas,activo) VALUES (?,?,?,?,?,?,?)")
+                ->execute([$nombre, $direccion, $contacto, '', '', $notas, $activo]);
+        } else {
+            $stmt = $pdo->prepare("INSERT INTO transportes (nombre,direccion,contacto,ciudad,provincia,notas,activo) VALUES (?,?,?,?,?,?,?)");
+            foreach ($lineas as $linea) {
+                $parts = array_map('trim', explode(',', $linea, 2));
+                $ciudad    = $parts[0] ?? '';
+                $provincia = $parts[1] ?? '';
+                $stmt->execute([$nombre, $direccion, $contacto, $ciudad, $provincia, $notas, $activo]);
+            }
         }
 
         flash('Transporte actualizado.');
@@ -46,10 +65,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 }
 
-// Datos para el form: usar POST si hay error, sino datos de DB
+// Datos para el form
 $form = $_SERVER['REQUEST_METHOD'] === 'POST' ? $_POST : [
     'nombre'    => $t['nombre'],
-    'telefono'  => $t['telefono'],
+    'contacto'  => $t['contacto'] ?? '',
     'direccion' => $t['direccion'],
     'notas'     => $t['notas'],
     'ciudades'  => implode("\n", $ciudades_actuales),
@@ -79,8 +98,8 @@ require_once '../includes/header.php';
         class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
     </div>
     <div>
-      <label class="block text-sm font-medium text-gray-700 mb-1">Teléfono</label>
-      <input type="tel" name="telefono" value="<?= esc($form['telefono']) ?>"
+      <label class="block text-sm font-medium text-gray-700 mb-1">Contacto / URL</label>
+      <input type="text" name="contacto" value="<?= esc($form['contacto']) ?>" placeholder="https://..."
         class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
     </div>
     <div>
@@ -91,7 +110,7 @@ require_once '../includes/header.php';
     <div>
       <label class="block text-sm font-medium text-gray-700 mb-1">
         Ciudades destino
-        <span class="text-gray-400 font-normal">(separadas por coma o en líneas separadas)</span>
+        <span class="text-gray-400 font-normal">(una por línea, formato: Ciudad, Provincia)</span>
       </label>
       <textarea name="ciudades" rows="6"
         class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 font-mono"><?= esc($form['ciudades']) ?></textarea>

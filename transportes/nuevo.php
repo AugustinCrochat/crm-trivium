@@ -6,27 +6,33 @@ $errors = [];
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     verify_csrf();
     $nombre    = trim($_POST['nombre']    ?? '');
-    $telefono  = trim($_POST['telefono']  ?? '');
+    $contacto  = trim($_POST['contacto']  ?? '');
     $direccion = trim($_POST['direccion'] ?? '');
     $notas     = trim($_POST['notas']     ?? '');
-    // Ciudades: texto separado por comas o saltos de línea
+    // Ciudades: cada línea = "ciudad, provincia"
     $ciudades_raw = $_POST['ciudades'] ?? '';
 
     if ($nombre === '') $errors[] = 'El nombre es obligatorio.';
 
     if (!$errors) {
-        $pdo->prepare("INSERT INTO transportes (nombre,telefono,direccion,notas) VALUES (?,?,?,?)")
-            ->execute([$nombre, $telefono, $direccion, $notas]);
-        $tid = $pdo->lastInsertId();
-
-        // Procesar ciudades
-        $ciudades = array_filter(
-            array_map('trim', preg_split('/[\n,]+/', $ciudades_raw)),
+        // Parsear líneas de ciudades
+        $lineas = array_filter(
+            array_map('trim', preg_split('/[\n]+/', $ciudades_raw)),
             fn($c) => $c !== ''
         );
-        $stmtC = $pdo->prepare("INSERT INTO transporte_ciudades (transporte_id, ciudad) VALUES (?,?)");
-        foreach (array_unique($ciudades) as $ciudad) {
-            $stmtC->execute([$tid, $ciudad]);
+
+        if (empty($lineas)) {
+            // Si no hay ciudades, insertar una sola fila sin ciudad
+            $pdo->prepare("INSERT INTO transportes (nombre,direccion,contacto,ciudad,provincia,notas,activo) VALUES (?,?,?,?,?,?,1)")
+                ->execute([$nombre, $direccion, $contacto, '', '', $notas]);
+        } else {
+            $stmt = $pdo->prepare("INSERT INTO transportes (nombre,direccion,contacto,ciudad,provincia,notas,activo) VALUES (?,?,?,?,?,?,1)");
+            foreach ($lineas as $linea) {
+                $parts = array_map('trim', explode(',', $linea, 2));
+                $ciudad    = $parts[0] ?? '';
+                $provincia = $parts[1] ?? '';
+                $stmt->execute([$nombre, $direccion, $contacto, $ciudad, $provincia, $notas]);
+            }
         }
 
         flash('Transporte creado.');
@@ -57,8 +63,8 @@ require_once '../includes/header.php';
         class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
     </div>
     <div>
-      <label class="block text-sm font-medium text-gray-700 mb-1">Teléfono</label>
-      <input type="tel" name="telefono" value="<?= esc($_POST['telefono'] ?? '') ?>"
+      <label class="block text-sm font-medium text-gray-700 mb-1">Contacto / URL</label>
+      <input type="text" name="contacto" value="<?= esc($_POST['contacto'] ?? '') ?>" placeholder="https://..."
         class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
     </div>
     <div>
@@ -69,9 +75,9 @@ require_once '../includes/header.php';
     <div>
       <label class="block text-sm font-medium text-gray-700 mb-1">
         Ciudades destino
-        <span class="text-gray-400 font-normal">(separadas por coma o en líneas separadas)</span>
+        <span class="text-gray-400 font-normal">(una por línea, formato: Ciudad, Provincia)</span>
       </label>
-      <textarea name="ciudades" rows="5" placeholder="Córdoba&#10;Santa Fe&#10;Rosario&#10;Tucumán"
+      <textarea name="ciudades" rows="6" placeholder="Córdoba, Córdoba&#10;Rosario, Santa Fe&#10;Mendoza, Mendoza"
         class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 font-mono"><?= esc($_POST['ciudades'] ?? '') ?></textarea>
     </div>
     <div>
