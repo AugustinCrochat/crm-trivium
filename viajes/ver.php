@@ -7,34 +7,7 @@ $vj->execute([$id]);
 $vj = $vj->fetch();
 if (!$vj) { flash('Viaje no encontrado.','error'); redirect('/viajes/'); }
 
-$title = 'Viaje ' . fecha($vj['fecha']);
-
-// Envíos asignados a este viaje
-$envios = $pdo->prepare("
-    SELECT e.*, c.nombre AS cliente_nombre, c.ciudad, t.nombre AS transporte_nombre
-    FROM envios e
-    LEFT JOIN clientes c    ON c.id = e.cliente_id
-    LEFT JOIN transportes t ON t.id = e.transporte_id
-    WHERE e.viaje_id = ?
-    ORDER BY e.created_at
-");
-$envios->execute([$id]);
-$envios = $envios->fetchAll();
-
-// Envíos pendientes para agregar al viaje
-$envios_disponibles = $pdo->query("
-    SELECT e.id, c.nombre AS cliente_nombre, c.ciudad, e.tipo
-    FROM envios e
-    LEFT JOIN clientes c ON c.id = e.cliente_id
-    WHERE e.viaje_id IS NULL
-      AND e.estado = 'pendiente'
-      AND e.tipo IN ('camion_plancha_deposito','camion_plancha_directo')
-    ORDER BY c.nombre
-")->fetchAll();
-
-require_once '../includes/header.php';
-
-// Acciones POST
+// Acciones POST — antes del header para que redirect() funcione
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     verify_csrf();
 
@@ -73,6 +46,33 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         redirect('/viajes/');
     }
 }
+
+$title = 'Viaje ' . fecha($vj['fecha']);
+
+// Envíos asignados a este viaje
+$envios = $pdo->prepare("
+    SELECT e.*, c.nombre AS cliente_nombre, c.ciudad, t.nombre AS transporte_nombre
+    FROM envios e
+    LEFT JOIN clientes c    ON c.id = e.cliente_id
+    LEFT JOIN transportes t ON t.id = e.transporte_id
+    WHERE e.viaje_id = ?
+    ORDER BY e.created_at
+");
+$envios->execute([$id]);
+$envios = $envios->fetchAll();
+
+// Envíos pendientes para agregar al viaje
+$envios_disponibles = $pdo->query("
+    SELECT e.id, c.nombre AS cliente_nombre, c.ciudad, e.tipo
+    FROM envios e
+    LEFT JOIN clientes c ON c.id = e.cliente_id
+    WHERE e.viaje_id IS NULL
+      AND e.estado = 'pendiente'
+      AND e.tipo IN ('camion_plancha_deposito','camion_plancha_directo')
+    ORDER BY c.nombre
+")->fetchAll();
+
+require_once '../includes/header.php';
 ?>
 
 <div class="flex items-center justify-between mb-4 gap-3">

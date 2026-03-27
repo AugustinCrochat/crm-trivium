@@ -19,12 +19,10 @@ $stmt->execute([$id]);
 $e = $stmt->fetch();
 if (!$e) { flash('Envío no encontrado.','error'); redirect('/viajes/'); }
 
-$title = 'Envío #' . $id;
-require_once '../includes/header.php';
-
-// Acciones POST
+// Acciones POST — antes del header para que redirect() funcione
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     verify_csrf();
+
     if (isset($_POST['nuevo_estado'])) {
         $validos = ['pendiente','en_transito','entregado'];
         $nuevo   = $_POST['nuevo_estado'];
@@ -32,12 +30,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $pdo->prepare("UPDATE envios SET estado=? WHERE id=?")->execute([$nuevo, $id]);
 
             if ($nuevo === 'entregado') {
-                // Marcar venta como entregada si está asociada
                 if ($e['venta_id_ref']) {
                     $pdo->prepare("UPDATE ventas SET entregado=1 WHERE id=?")
                         ->execute([$e['venta_id_ref']]);
                 }
-                // Actualizar estado del cliente a 'guardado'
                 if ($e['cliente_id']) {
                     $pdo->prepare("UPDATE clientes SET estado='guardado' WHERE id=? AND estado='en_envio'")
                         ->execute([$e['cliente_id']]);
@@ -54,6 +50,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         redirect('/viajes/');
     }
 }
+
+$title = 'Envío #' . $id;
+require_once '../includes/header.php';
 ?>
 
 <div class="flex items-center justify-between mb-4 gap-3">
