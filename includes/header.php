@@ -2,7 +2,7 @@
 // Detectar módulo activo por ruta del script
 $_scriptPath = str_replace('\\', '/', $_SERVER['SCRIPT_FILENAME']);
 $_activeModule = 'dashboard';
-foreach (['clientes','catalogo','presupuestos','ventas','transportes','logistica','importaciones','tango'] as $_m) {
+foreach (['clientes','catalogo','presupuestos','ventas','transportes','logistica','importaciones','tango','prestamo'] as $_m) {
     if ($_m === 'logistica') {
         $_found = strpos($_scriptPath, '/viajes/') !== false || strpos($_scriptPath, '/envios/') !== false;
     } elseif ($_m === 'importaciones') {
@@ -87,6 +87,10 @@ function _navSection(string $label): void
 
       <?php _navLink('ventas', 'Ventas',
         '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"/>',
+      $_activeModule); ?>
+
+      <?php _navLink('prestamo', 'Préstamos',
+        '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />',
       $_activeModule); ?>
 
       <?php _navSection('Catálogo'); ?>
